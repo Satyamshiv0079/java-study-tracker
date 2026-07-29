@@ -41,15 +41,15 @@ export default function AnalyticsTab({ completedDays, studyHours, completedDsa, 
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-sm">
-        <h2 className="text-xl font-bold text-white mb-2">Study Analytics & Insights</h2>
-        <p className="text-sm text-slate-400">Track your progress and placement readiness across all categories.</p>
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-sm">
+        <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Study Analytics & Insights</h2>
+        <p className="text-sm text-slate-600 dark:text-slate-400">Track your progress and placement readiness across all categories.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Line Chart: Study Hours Trend */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm hover:border-slate-700 transition">
-          <h3 className="text-sm font-bold text-white mb-4">Study Hours Trend (Last 7 Sessions)</h3>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm hover:border-slate-300 dark:border-slate-700 transition">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4">Study Hours Trend (Last 7 Sessions)</h3>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={trendData}>
@@ -64,8 +64,8 @@ export default function AnalyticsTab({ completedDays, studyHours, completedDsa, 
         </div>
 
         {/* Bar Chart: Overall Readiness */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm hover:border-slate-700 transition">
-          <h3 className="text-sm font-bold text-white mb-4">Placement Readiness by Category (%)</h3>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm hover:border-slate-300 dark:border-slate-700 transition">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4">Placement Readiness by Category (%)</h3>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={readinessData}>
@@ -80,8 +80,8 @@ export default function AnalyticsTab({ completedDays, studyHours, completedDsa, 
         </div>
 
         {/* Pie Chart: DSA Distribution */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-sm lg:col-span-2 hover:border-slate-700 transition">
-          <h3 className="text-sm font-bold text-white mb-4">Actual DSA Completion by Category</h3>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm lg:col-span-2 hover:border-slate-300 dark:border-slate-700 transition">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4">Actual DSA Completion by Category</h3>
           <div className="h-64 w-full flex justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>

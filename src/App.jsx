@@ -10,9 +10,11 @@ import MentorTab from './components/MentorTab';
 import AnalyticsTab from './components/AnalyticsTab';
 import { getDaySyllabus } from './data/syllabus';
 
-// --- Persistent storage keys ---
-const PROGRESS_KEY = 'study-progress-v1';
-const CHAT_KEY = 'study-chat-v1';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from './lib/firebase';
+
+const USER_ID = 'satyam_default'; // Hardcoded for single-user SaaS demo
+const DOC_REF = doc(db, 'users', USER_ID);
 
 export default function App() {
   const [storageReady, setStorageReady] = useState(false);
@@ -58,54 +60,58 @@ export default function App() {
 
   const dayData = getDaySyllabus(activeDay);
 
-  // --- Load persisted state on mount ---
+  // --- Load persisted state from Firebase on mount ---
   useEffect(() => {
-    try {
-      const progress = localStorage.getItem(PROGRESS_KEY);
-      if (progress) {
-        const p = JSON.parse(progress);
-        if (p.completedDays) setCompletedDays(p.completedDays);
-        if (p.completedDsa) setCompletedDsa(p.completedDsa);
-        if (typeof p.studyHours === 'number') setStudyHours(p.studyHours);
-        if (p.notes) {
-          setNotes(p.notes);
-          setActiveNote(p.notes[1] || '');
+    async function loadData() {
+      try {
+        const snap = await getDoc(DOC_REF);
+        if (snap.exists()) {
+          const p = snap.data();
+          if (p.completedDays) setCompletedDays(p.completedDays);
+          if (p.completedDsa) setCompletedDsa(p.completedDsa);
+          if (typeof p.studyHours === 'number') setStudyHours(p.studyHours);
+          if (p.notes) {
+            setNotes(p.notes);
+            setActiveNote(p.notes[1] || '');
+          }
+          if (p.vivaScore) setVivaScore(p.vivaScore);
+          if (p.projectMilestones) setProjectMilestones(p.projectMilestones);
+          if (p.chatMessages && Array.isArray(p.chatMessages) && p.chatMessages.length > 0) {
+            setChatMessages(p.chatMessages);
+          }
         }
-        if (p.vivaScore) setVivaScore(p.vivaScore);
-        if (p.projectMilestones) setProjectMilestones(p.projectMilestones);
+      } catch (err) {
+        console.error("Firebase load error:", err);
+        setStorageError('Could not load progress from Firebase.');
+      } finally {
+        setStorageReady(true);
       }
-    } catch {
-      // ignore
     }
-    try {
-      const chat = localStorage.getItem(CHAT_KEY);
-      if (chat) {
-        const c = JSON.parse(chat);
-        if (Array.isArray(c) && c.length > 0) setChatMessages(c);
-      }
-    } catch {
-      // ignore
-    }
-    setStorageReady(true);
+    loadData();
   }, []);
 
-  // --- Persist progress whenever it changes ---
+  // --- Persist progress to Firebase whenever it changes ---
   useEffect(() => {
     if (!storageReady) return;
-    try {
-      const payload = JSON.stringify({ completedDays, completedDsa, studyHours, notes, vivaScore, projectMilestones });
-      localStorage.setItem(PROGRESS_KEY, payload);
-    } catch (e) {
-      setStorageError('Could not save progress to localStorage.');
-    }
-  }, [storageReady, completedDays, completedDsa, studyHours, notes, vivaScore, projectMilestones]);
-
-  useEffect(() => {
-    if (!storageReady) return;
-    try {
-      localStorage.setItem(CHAT_KEY, JSON.stringify(chatMessages));
-    } catch { }
-  }, [storageReady, chatMessages]);
+    const saveTimer = setTimeout(async () => {
+      try {
+        const payload = { 
+          completedDays, 
+          completedDsa, 
+          studyHours, 
+          notes, 
+          vivaScore, 
+          projectMilestones,
+          chatMessages
+        };
+        await setDoc(DOC_REF, payload, { merge: true });
+      } catch (e) {
+        console.error("Firebase save error:", e);
+        setStorageError('Could not sync progress to cloud.');
+      }
+    }, 1000); // Debounce saves by 1 second to minimize writes
+    return () => clearTimeout(saveTimer);
+  }, [storageReady, completedDays, completedDsa, studyHours, notes, vivaScore, projectMilestones, chatMessages]);
 
   useEffect(() => {
     if (dayData) setSandboxCode(dayData.dsa.starterCode);
@@ -228,14 +234,14 @@ export default function App() {
 
   if (!storageReady) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400 text-sm">
-        Loading your saved progress...
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center text-slate-500 dark:text-slate-400 text-sm transition-colors duration-200">
+        Syncing with Firebase Cloud...
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col antialiased">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans flex flex-col antialiased transition-colors duration-200">
       <Header
         isTimerRunning={isTimerRunning}
         timerMode={timerMode}
