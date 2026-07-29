@@ -1,0 +1,332 @@
+import React, { useState, useEffect, useRef } from 'react';
+import Header from './components/Header';
+import Navigation from './components/Navigation';
+import DashboardTab from './components/DashboardTab';
+import SyllabusTab from './components/SyllabusTab';
+import CodingTab from './components/CodingTab';
+import InterviewTab from './components/InterviewTab';
+import ProjectTab from './components/ProjectTab';
+import MentorTab from './components/MentorTab';
+import AnalyticsTab from './components/AnalyticsTab';
+import { getDaySyllabus } from './data/syllabus';
+
+// --- Persistent storage keys ---
+const PROGRESS_KEY = 'study-progress-v1';
+const CHAT_KEY = 'study-chat-v1';
+
+export default function App() {
+  const [storageReady, setStorageReady] = useState(false);
+  const [storageError, setStorageError] = useState(null);
+
+  const [currentTab, setCurrentTab] = useState('dashboard');
+  const [activeDay, setActiveDay] = useState(1);
+  const [completedDays, setCompletedDays] = useState([1]);
+  const [completedDsa, setCompletedDsa] = useState([]);
+  const [studyHours, setStudyHours] = useState(0);
+  const [notes, setNotes] = useState({});
+  const [activeNote, setActiveNote] = useState('');
+  const [vivaScore, setVivaScore] = useState({ correct: 0, total: 0 });
+  const [projectMilestones, setProjectMilestones] = useState([
+    { id: 1, name: "Initialize Spring Boot project & pom.xml setup", done: false },
+    { id: 2, name: "Establish Postgres/H2 schema & application.yml configuration", done: false },
+    { id: 3, name: "Write entity classes with real database relations", done: false },
+    { id: 4, name: "Add Spring Security, JWT filter, and PasswordEncoder", done: false },
+    { id: 5, name: "Implement REST controllers and global exception handling", done: false },
+    { id: 6, name: "Build frontend and wire it to the real API", done: false },
+    { id: 7, name: "Handle auth flow end-to-end (login, token storage, protected routes)", done: false },
+    { id: 8, name: "Write tests, then actually deploy both frontend and backend", done: false }
+  ]);
+
+  // Timer
+  const [timerMode, setTimerMode] = useState('pomodoro');
+  const [timerSeconds, setTimerSeconds] = useState(1500);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const timerIntervalRef = useRef(null);
+
+  // Code review
+  const [sandboxCode, setSandboxCode] = useState('');
+  const [reviewOutput, setReviewOutput] = useState('');
+  const [isReviewing, setIsReviewing] = useState(false);
+
+  // AI Mentor
+  const [chatMessages, setChatMessages] = useState([
+    { sender: 'mentor', text: "Hi, I'm your Java/Spring/DSA study mentor. Ask me to explain a concept, quiz you, review your code, or fill in a day that doesn't have real content yet. (Powered securely by Node.js Backend)." }
+  ]);
+  const [chatInput, setChatInput] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const chatEndRef = useRef(null);
+
+  const dayData = getDaySyllabus(activeDay);
+
+  // --- Load persisted state on mount ---
+  useEffect(() => {
+    try {
+      const progress = localStorage.getItem(PROGRESS_KEY);
+      if (progress) {
+        const p = JSON.parse(progress);
+        if (p.completedDays) setCompletedDays(p.completedDays);
+        if (p.completedDsa) setCompletedDsa(p.completedDsa);
+        if (typeof p.studyHours === 'number') setStudyHours(p.studyHours);
+        if (p.notes) {
+          setNotes(p.notes);
+          setActiveNote(p.notes[1] || '');
+        }
+        if (p.vivaScore) setVivaScore(p.vivaScore);
+        if (p.projectMilestones) setProjectMilestones(p.projectMilestones);
+      }
+    } catch {
+      // ignore
+    }
+    try {
+      const chat = localStorage.getItem(CHAT_KEY);
+      if (chat) {
+        const c = JSON.parse(chat);
+        if (Array.isArray(c) && c.length > 0) setChatMessages(c);
+      }
+    } catch {
+      // ignore
+    }
+    setStorageReady(true);
+  }, []);
+
+  // --- Persist progress whenever it changes ---
+  useEffect(() => {
+    if (!storageReady) return;
+    try {
+      const payload = JSON.stringify({ completedDays, completedDsa, studyHours, notes, vivaScore, projectMilestones });
+      localStorage.setItem(PROGRESS_KEY, payload);
+    } catch (e) {
+      setStorageError('Could not save progress to localStorage.');
+    }
+  }, [storageReady, completedDays, completedDsa, studyHours, notes, vivaScore, projectMilestones]);
+
+  useEffect(() => {
+    if (!storageReady) return;
+    try {
+      localStorage.setItem(CHAT_KEY, JSON.stringify(chatMessages));
+    } catch { }
+  }, [storageReady, chatMessages]);
+
+  useEffect(() => {
+    if (dayData) setSandboxCode(dayData.dsa.starterCode);
+    setActiveNote(notes[activeDay] || '');
+    setReviewOutput('');
+  }, [activeDay]);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages, isGenerating]);
+
+  // Timer countdown
+  useEffect(() => {
+    if (isTimerRunning) {
+      timerIntervalRef.current = setInterval(() => {
+        setTimerSeconds((prev) => {
+          if (prev <= 1) {
+            setIsTimerRunning(false);
+            clearInterval(timerIntervalRef.current);
+            const sessionMins = timerMode === 'pomodoro' ? 25 : timerMode === 'study' ? 50 : 0;
+            if (sessionMins > 0) {
+              setStudyHours((h) => parseFloat((h + sessionMins / 60).toFixed(1)));
+            }
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      clearInterval(timerIntervalRef.current);
+    }
+    return () => clearInterval(timerIntervalRef.current);
+  }, [isTimerRunning, timerMode]);
+
+  const handleTimerControl = () => setIsTimerRunning(!isTimerRunning);
+  const handleTimerReset = (mode) => {
+    setIsTimerRunning(false);
+    setTimerMode(mode);
+    if (mode === 'pomodoro') setTimerSeconds(1500);
+    else if (mode === 'study') setTimerSeconds(3000);
+    else if (mode === 'break') setTimerSeconds(600);
+  };
+  const formatTime = (totalSecs) => {
+    const mins = Math.floor(totalSecs / 60);
+    const secs = totalSecs % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  async function handleGetReview() {
+    setIsReviewing(true);
+    setReviewOutput('');
+    try {
+      setTimeout(() => {
+        setReviewOutput("Mocked Review: Your logic looks mostly correct. \nTime Complexity: O(N) \nSpace Complexity: O(1).\nConsider adding edge case checks for empty arrays.");
+        setIsReviewing(false);
+      }, 1500);
+    } catch (err) {
+      setReviewOutput(`Could not reach the review service: ${err.message}`);
+      setIsReviewing(false);
+    }
+  }
+
+  function handleMarkDsaDone() {
+    if (!completedDsa.includes(activeDay)) {
+      setCompletedDsa([...completedDsa, activeDay]);
+    } else {
+      setCompletedDsa(completedDsa.filter((d) => d !== activeDay));
+    }
+  }
+
+  function handleSaveNote() {
+    setNotes({ ...notes, [activeDay]: activeNote });
+  }
+
+  function handleToggleDayComplete(dayNum) {
+    setCompletedDays(
+      completedDays.includes(dayNum) ? completedDays.filter((d) => d !== dayNum) : [...completedDays, dayNum]
+    );
+  }
+
+  function toggleMilestone(id) {
+    setProjectMilestones(projectMilestones.map((m) => (m.id === id ? { ...m, done: !m.done } : m)));
+  }
+
+  async function handleSendMessage() {
+    if (!chatInput.trim() || isGenerating) return;
+    const userMsg = chatInput;
+    const nextMessages = [...chatMessages, { sender: 'user', text: userMsg }];
+    setChatMessages(nextMessages);
+    setChatInput('');
+    setIsGenerating(true);
+
+    try {
+      const historyContent = nextMessages.filter((m, i) => i > 0).map(m => ({
+        role: m.sender === 'user' ? 'user' : 'model',
+        parts: [{ text: m.text }]
+      }));
+      
+      const apiUrl = import.meta.env.PROD ? '/api/chat' : 'http://localhost:3001/api/chat';
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          activeDayTitle: `Day ${activeDay} - ${dayData?.title || 'Unknown'}`,
+          historyContent
+        })
+      });
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error.message);
+      
+      const text = data.candidates[0].content.parts[0].text;
+      setChatMessages([...nextMessages, { sender: 'mentor', text }]);
+    } catch (err) {
+      setChatMessages([...nextMessages, { sender: 'mentor', text: `Error: ${err.message}. Make sure the backend server is running on port 3001.` }]);
+    } finally {
+      setIsGenerating(false);
+    }
+  }
+
+  if (!storageReady) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400 text-sm">
+        Loading your saved progress...
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col antialiased">
+      <Header
+        isTimerRunning={isTimerRunning}
+        timerMode={timerMode}
+        timerSeconds={timerSeconds}
+        handleTimerControl={handleTimerControl}
+        handleTimerReset={handleTimerReset}
+        formatTime={formatTime}
+      />
+
+      <Navigation currentTab={currentTab} setCurrentTab={setCurrentTab} />
+
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6 overflow-y-auto custom-scrollbar">
+        {currentTab === 'dashboard' && (
+          <DashboardTab
+            storageError={storageError}
+            completedDays={completedDays}
+            studyHours={studyHours}
+            completedDsa={completedDsa}
+            projectMilestones={projectMilestones}
+            vivaScore={vivaScore}
+            activeDay={activeDay}
+            setActiveDay={setActiveDay}
+            dayData={dayData}
+            handleToggleDayComplete={handleToggleDayComplete}
+            activeNote={activeNote}
+            setActiveNote={setActiveNote}
+            handleSaveNote={handleSaveNote}
+            setCurrentTab={setCurrentTab}
+          />
+        )}
+
+        {currentTab === 'syllabus' && (
+          <SyllabusTab
+            activeDay={activeDay}
+            setActiveDay={setActiveDay}
+            completedDays={completedDays}
+            handleToggleDayComplete={handleToggleDayComplete}
+            dayData={dayData}
+            setCurrentTab={setCurrentTab}
+          />
+        )}
+
+        {currentTab === 'coding' && (
+          <CodingTab
+            activeDay={activeDay}
+            dayData={dayData}
+            completedDsa={completedDsa}
+            handleMarkDsaDone={handleMarkDsaDone}
+            sandboxCode={sandboxCode}
+            setSandboxCode={setSandboxCode}
+            handleGetReview={handleGetReview}
+            isReviewing={isReviewing}
+            reviewOutput={reviewOutput}
+          />
+        )}
+
+        {currentTab === 'interview' && (
+          <InterviewTab
+            vivaScore={vivaScore}
+            setVivaScore={setVivaScore}
+          />
+        )}
+
+        {currentTab === 'project' && (
+          <ProjectTab
+            projectMilestones={projectMilestones}
+            toggleMilestone={toggleMilestone}
+          />
+        )}
+
+        {currentTab === 'analytics' && (
+          <AnalyticsTab
+            completedDays={completedDays}
+            studyHours={studyHours}
+            completedDsa={completedDsa}
+            projectMilestones={projectMilestones}
+            vivaScore={vivaScore}
+          />
+        )}
+
+        {currentTab === 'mentor' && (
+          <MentorTab
+            chatMessages={chatMessages}
+            chatInput={chatInput}
+            setChatInput={setChatInput}
+            handleSendMessage={handleSendMessage}
+            isGenerating={isGenerating}
+            chatEndRef={chatEndRef}
+          />
+        )}
+      </main>
+    </div>
+  );
+}
