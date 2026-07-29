@@ -17,31 +17,31 @@ A highly interactive, full-stack study tracker designed to guide developers from
 > **Note:** To see the live screenshots, visit the [live site](https://java-study-tracker-omega.vercel.app/) or drag-and-drop your images here in the GitHub editor!
 
 <div align="center">
-  <img src="./docs/dashboard.png" alt="Dashboard View" width="800"/>
+  <img src="./docs/Dashboard.png.png" alt="Dashboard View" width="800"/>
   <br/>
   <em>Dashboard View showing study analytics and progress.</em>
 </div>
 <br/>
 <div align="center">
-  <img src="./docs/syllabus.png" alt="Syllabus View" width="800"/>
+  <img src="./docs/Syllabus.png.png" alt="Syllabus View" width="800"/>
   <br/>
   <em>Syllabus & Notes tab featuring daily curated content.</em>
 </div>
 <br/>
 <div align="center">
-  <img src="./docs/dsa.png" alt="DSA Practice" width="800"/>
+  <img src="./docs/Dsa.png.png" alt="DSA Practice" width="800"/>
   <br/>
   <em>DSA Sandbox Editor for daily coding practice.</em>
 </div>
 <br/>
 <div align="center">
-  <img src="./docs/analytics.png" alt="Analytics View" width="800"/>
+  <img src="./docs/Analytics.png.png" alt="Analytics View" width="800"/>
   <br/>
   <em>Analytics tab visualizing study hours and placement readiness.</em>
 </div>
 <br/>
 <div align="center">
-  <img src="./docs/mentor.png" alt="AI Mentor" width="800"/>
+  <img src="./docs/Mentor.png.png" alt="AI Mentor" width="800"/>
   <br/>
   <em>Integrated AI Mentor actively grilling on JVM memory layout.</em>
 </div>
