@@ -10,11 +10,7 @@ import MentorTab from './components/MentorTab';
 import AnalyticsTab from './components/AnalyticsTab';
 import { getDaySyllabus } from './data/syllabus';
 
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from './lib/firebase';
-
-const USER_ID = 'satyam_default'; // Hardcoded for single-user SaaS demo
-const DOC_REF = doc(db, 'users', USER_ID);
+const USER_ID = 1; // Hardcoded user ID mapped to the Java backend seeder
 
 export default function App() {
   const [storageReady, setStorageReady] = useState(false);
@@ -60,14 +56,24 @@ export default function App() {
 
   const dayData = getDaySyllabus(activeDay);
 
-  // --- Load persisted state from Firebase on mount ---
+  // --- Load persisted state from Java API and LocalStorage on mount ---
   useEffect(() => {
     async function loadData() {
       try {
-        const snap = await getDoc(DOC_REF);
-        if (snap.exists()) {
-          const p = snap.data();
-          if (p.completedDays) setCompletedDays(p.completedDays);
+        // 1. Load Day Progress from real Java Backend
+        const response = await fetch(`http://localhost:8080/api/progress/${USER_ID}`);
+        if (response.ok) {
+          const progressList = await response.json();
+          const completedDaysList = progressList
+            .filter(p => p.completed)
+            .map(p => p.dayNumber);
+          setCompletedDays(completedDaysList);
+        }
+
+        // 2. Load other stats from LocalStorage (since Java backend only tracks days right now)
+        const localData = localStorage.getItem('studyTrackerData');
+        if (localData) {
+          const p = JSON.parse(localData);
           if (p.completedDsa) setCompletedDsa(p.completedDsa);
           if (typeof p.studyHours === 'number') setStudyHours(p.studyHours);
           if (p.notes) {
@@ -81,8 +87,8 @@ export default function App() {
           }
         }
       } catch (err) {
-        console.error("Firebase load error:", err);
-        setStorageError('Could not load progress from Firebase.');
+        console.error("Load error:", err);
+        setStorageError('Could not load progress from Java Backend.');
       } finally {
         setStorageReady(true);
       }
@@ -90,13 +96,12 @@ export default function App() {
     loadData();
   }, []);
 
-  // --- Persist progress to Firebase whenever it changes ---
+  // --- Persist non-day progress to LocalStorage whenever it changes ---
   useEffect(() => {
     if (!storageReady) return;
-    const saveTimer = setTimeout(async () => {
+    const saveTimer = setTimeout(() => {
       try {
         const payload = { 
-          completedDays, 
           completedDsa, 
           studyHours, 
           notes, 
@@ -104,14 +109,13 @@ export default function App() {
           projectMilestones,
           chatMessages
         };
-        await setDoc(DOC_REF, payload, { merge: true });
+        localStorage.setItem('studyTrackerData', JSON.stringify(payload));
       } catch (e) {
-        console.error("Firebase save error:", e);
-        setStorageError('Could not sync progress to cloud.');
+        console.error("Local save error:", e);
       }
     }, 1000); // Debounce saves by 1 second to minimize writes
     return () => clearTimeout(saveTimer);
-  }, [storageReady, completedDays, completedDsa, studyHours, notes, vivaScore, projectMilestones, chatMessages]);
+  }, [storageReady, completedDsa, studyHours, notes, vivaScore, projectMilestones, chatMessages]);
 
   useEffect(() => {
     if (dayData) setSandboxCode(dayData.dsa.starterCode);
@@ -186,10 +190,20 @@ export default function App() {
     setNotes({ ...notes, [activeDay]: activeNote });
   }
 
-  function handleToggleDayComplete(dayNum) {
+  async function handleToggleDayComplete(dayNum) {
+    const isNowComplete = !completedDays.includes(dayNum);
     setCompletedDays(
-      completedDays.includes(dayNum) ? completedDays.filter((d) => d !== dayNum) : [...completedDays, dayNum]
+      isNowComplete ? [...completedDays, dayNum] : completedDays.filter((d) => d !== dayNum)
     );
+    
+    // Call the real Java Spring Boot API!
+    try {
+      await fetch(`http://localhost:8080/api/progress/${USER_ID}/${dayNum}`, {
+        method: 'POST'
+      });
+    } catch (err) {
+      console.error("Failed to sync day to Java backend", err);
+    }
   }
 
   function toggleMilestone(id) {
