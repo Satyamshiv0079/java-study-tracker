@@ -177,7 +177,7 @@ export const challengeSyllabus = [
       "Basic CRUD (SELECT, INSERT, UPDATE, DELETE)"
     ],
     "theory": "A Relational Database Management System (RDBMS) stores data in tables. A Primary Key uniquely identifies a record, while a Foreign Key creates relationships between tables. SQL (Structured Query Language) is used to manipulate this data.",
-    "youtubeId": "HXV3zeJZ1EQ",
+    "youtubeId": "zsjvFFKOm3c",
     "dsa": {
       "title": "Merge Two Sorted Lists",
       "difficulty": "Easy",
@@ -208,7 +208,7 @@ export const challengeSyllabus = [
       "String & Date Functions"
     ],
     "theory": "SQL allows powerful filtering using the WHERE clause. Aggregate functions compute a single result from a set of input values, commonly used for reporting and data analysis.",
-    "youtubeId": "2bW3HuaAwcg",
+    "youtubeId": "7Vtl2WggqOg",
     "dsa": {
       "title": "Remove Nth Node From End of List",
       "difficulty": "Medium",
@@ -262,7 +262,7 @@ export const challengeSyllabus = [
       "Nested Queries"
     ],
     "theory": "The GROUP BY statement groups rows that have the same values into summary rows. Subqueries allow you to execute a query within another query, passing the result up to the outer query.",
-    "youtubeId": "Ww71qlQlNx8",
+    "youtubeId": "kUAdkP9E42k",
     "dsa": {
       "title": "Intersection of Two Linked Lists",
       "difficulty": "Easy",
@@ -316,7 +316,7 @@ export const challengeSyllabus = [
       "Durability"
     ],
     "theory": "A transaction is a single unit of work. ACID guarantees data reliability. Atomicity ensures all-or-nothing. Consistency ensures valid states. Isolation ensures concurrent transactions don't interfere. Durability ensures committed changes survive failures.",
-    "youtubeId": "8470mXh39aU",
+    "youtubeId": "tGqH8iUAn34",
     "dsa": {
       "title": "Reverse Linked List II",
       "difficulty": "Medium",
@@ -397,7 +397,7 @@ export const challengeSyllabus = [
       "Responsive Media Queries"
     ],
     "theory": "CSS styles the web. The Box Model dictates how elements take up space. Flexbox is a 1-dimensional layout model that automatically aligns items in rows or columns, adjusting to available space.",
-    "youtubeId": "yU7jY3NIZTs",
+    "youtubeId": "fYq5PXgSsbE",
     "dsa": {
       "title": "Min Stack",
       "difficulty": "Medium",
@@ -638,7 +638,7 @@ export const challengeSyllabus = [
       "Deployment Strategies"
     ],
     "theory": "CI/CD automates the building, testing, and deployment of applications. CI ensures new code integrates cleanly (often running tests). CD automates the release of that validated code to staging or production.",
-    "youtubeId": "scEDHll3Tok",
+    "youtubeId": "OPw4AUi53-k",
     "dsa": {
       "title": "Median of Two Sorted Arrays",
       "difficulty": "Hard",
@@ -692,7 +692,7 @@ export const challengeSyllabus = [
       "Service Discovery"
     ],
     "theory": "A monolith builds the entire application into a single executable. Microservices break the application into independent, loosely coupled services. Microservices allow independent scaling and tech stacks but introduce distributed system complexity.",
-    "youtubeId": "q_rQJt8N148",
+    "youtubeId": "CpbHcpo2k0s",
     "dsa": {
       "title": "Word Search II",
       "difficulty": "Hard",
@@ -746,7 +746,7 @@ export const challengeSyllabus = [
       "Pub/Sub Pattern"
     ],
     "theory": "Message queues decouple services by allowing them to communicate asynchronously. A producer sends a message to a queue, and a consumer processes it later, smoothing out traffic spikes and ensuring reliability.",
-    "youtubeId": "chCEBcGsAwc",
+    "youtubeId": "8aGhZQkoFbQ",
     "dsa": {
       "title": "Design Twitter",
       "difficulty": "Medium",
@@ -800,7 +800,7 @@ export const challengeSyllabus = [
       "SQL vs NoSQL scaling"
     ],
     "theory": "The CAP Theorem states a distributed system can only provide two of three guarantees simultaneously: Consistency, Availability, and Partition Tolerance. Because network partitions (P) are unavoidable, systems must choose between CP and AP.",
-    "youtubeId": "k-YAQ8Q14wg",
+    "youtubeId": "wRZYK3E1m4c",
     "dsa": {
       "title": "N-Queens",
       "difficulty": "Hard",
