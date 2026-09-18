@@ -1,53 +1,107 @@
 # 🚀 45-Day Java Full-Stack Study Tracker
 
-A highly interactive, full-stack study tracker designed to guide developers from zero to a backend placement in 45 days. 
-Built with a **React** frontend and a true **Java Spring Boot** REST API backend.
+> A highly interactive, full-stack study tracker designed to guide developers from zero to a backend placement in 45 days.
+
+[![Frontend](https://img.shields.io/badge/Frontend-Vercel-black?style=for-the-badge&logo=vercel)](https://java-study-tracker-omega.vercel.app/)
+[![Backend](https://img.shields.io/badge/Backend-Render-46E3B7?style=for-the-badge&logo=render)](https://java-study-tracker.onrender.com/api/progress/1)
+[![Java](https://img.shields.io/badge/Java-17-ED8B00?style=for-the-badge&logo=openjdk)](https://openjdk.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.4-6DB33F?style=for-the-badge&logo=springboot)](https://spring.io/projects/spring-boot)
+[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react)](https://react.dev/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
+
+---
+
+## 🌐 Live Demo
+
+| Service | URL |
+|---------|-----|
+| **Frontend (React + Vite)** | https://java-study-tracker-omega.vercel.app/ |
+| **Backend REST API (Spring Boot)** | https://java-study-tracker.onrender.com/api/progress/1 |
+| **GitHub Repository** | https://github.com/Satyamshiv0079/java-study-tracker |
+
+> ⚠️ The backend runs on Render's **free tier** and may take ~50 seconds to wake up after inactivity. This is expected behaviour.
+
+---
 
 ## ✨ Features
 
-- **📚 45-Day Curated Syllabus:** A complete roadmap covering Java Core, OOP, Data Structures & Algorithms, SQL Databases, Spring Boot, CI/CD, and System Design.
-- **☕ Real Java Spring Boot API:** The application is no longer a mock frontend! It is powered by a robust Spring Boot REST API using Spring Data JPA and Hibernate.
-- **🎥 Integrated Video Lessons:** High-quality, embeddable YouTube tutorials (from creators like TechWorld with Nana, ByteByteGo, and freeCodeCamp) curated for every single day.
-- **💻 DSA Practice:** Direct links and starter code for 45 curated LeetCode problems (Array, LinkedList, Trees, DP, etc.).
-- **📊 Analytics Dashboard:** Interactive visual charts (built with Recharts) tracking your study hours, DSA completion distribution, and placement readiness percentage.
-- **🤖 AI Mentor:** An integrated AI chat assistant (powered securely by Google Gemini) to review your code, explain complex concepts, and quiz you.
-- **🍅 Pomodoro Timer:** A built-in study timer (25m / 50m / 10m intervals) to keep you focused.
-- **🌗 Dark/Light Mode Engine:** A beautiful, responsive UI that instantly toggles between glassmorphic dark mode and clean light mode.
+- **📚 45-Day Curated Syllabus** — Complete roadmap: Java Core → OOP → DSA → SQL → Spring Boot → Docker → CI/CD → System Design
+- **☕ Real Java Spring Boot REST API** — Full 3-layer architecture (Controller → Service → Repository) powered by JPA & Hibernate
+- **🎥 Embedded YouTube Lessons** — Hand-curated tutorials from freeCodeCamp, Amigoscode, ByteByteGo and more — one per day
+- **💻 DSA Practice Sandbox** — 45 curated LeetCode problems with Java starter code (Easy → Hard progression)
+- **📊 Analytics Dashboard** — Visual charts tracking study hours, DSA completion, and placement readiness score
+- **🤖 AI Mentor** — Integrated Google Gemini-powered chat to explain concepts, quiz you, and review your code
+- **🍅 Pomodoro Timer** — Built-in 25m / 50m / 10m study timer
+- **🌗 Dark / Light Mode** — Glassmorphic dark mode and clean light mode
+
+---
 
 ## 📸 Screenshots
 
-> **Note:** To see the live screenshots, visit the [live site](https://java-study-tracker-omega.vercel.app/) or drag-and-drop your images here in the GitHub editor!
-
 <div align="center">
   <img src="./docs/Dashboard.png.png" alt="Dashboard View" width="800"/>
-  <br/>
-  <em>Dashboard View showing study analytics and progress.</em>
+  <br/><em>Dashboard — study analytics and day progress</em>
 </div>
 <br/>
 <div align="center">
   <img src="./docs/Syllabus.png.png" alt="Syllabus View" width="800"/>
-  <br/>
-  <em>Syllabus & Notes tab featuring daily curated content.</em>
+  <br/><em>Syllabus & Notes — daily curated content with embedded video</em>
 </div>
+<br/>
+<div align="center">
+  <img src="./docs/Dsa.png.png" alt="DSA Practice" width="800"/>
+  <br/><em>DSA Sandbox — Java starter code for daily coding practice</em>
+</div>
+<br/>
+<div align="center">
+  <img src="./docs/Analytics.png.png" alt="Analytics View" width="800"/>
+  <br/><em>Analytics — study hours and placement readiness charts</em>
+</div>
+<br/>
+<div align="center">
+  <img src="./docs/Mentor.png.png" alt="AI Mentor" width="800"/>
+  <br/><em>AI Mentor — powered by Google Gemini</em>
+</div>
+
+---
 
 ## 🛠️ Tech Stack
 
-### Frontend (React)
-- **Framework:** React 18, Vite
-- **Styling:** Tailwind CSS, Lucide Icons
-- **Charts:** Recharts
-- **AI Integration:** Node.js Express serverless functions (for Gemini API)
+### Frontend
+| Technology | Purpose |
+|-----------|---------|
+| React 18 + Vite | UI framework & build tool |
+| Tailwind CSS | Styling |
+| Recharts | Analytics charts |
+| Lucide Icons | Icon library |
 
-### Backend (Java)
-- **Framework:** Java 17, Spring Boot 3.4.1
-- **Architecture:** Controller-Service-Repository Pattern
-- **Database:** H2 In-Memory (Dev) / PostgreSQL (Prod ready)
-- **ORM:** Spring Data JPA / Hibernate
-- **Security:** Spring Security (CORS enabled)
+### Backend
+| Technology | Purpose |
+|-----------|---------|
+| Java 17 | Core language |
+| Spring Boot 3.4 | REST API framework |
+| Spring Data JPA / Hibernate | ORM & database access |
+| Spring Security | CORS & request security |
+| H2 (In-Memory) | Development database |
+| Docker | Containerization for Render deployment |
+
+### Infrastructure
+| Service | Purpose |
+|---------|---------|
+| Vercel | Frontend hosting (auto-deploy from GitHub) |
+| Render | Backend hosting (Docker container) |
+| GitHub | Source control & CI trigger |
+
+---
 
 ## 🚀 Getting Started Locally
 
-Because this is a full-stack application, you need to run both the Java Backend and the React Frontend simultaneously.
+This is a **monorepo** — the React frontend and Spring Boot backend live in the same repository.
+
+### Prerequisites
+- Node.js 18+
+- Java 17+
+- Maven (included via `mvnw` wrapper)
 
 ### 1. Clone the repository
 ```bash
@@ -55,30 +109,82 @@ git clone https://github.com/Satyamshiv0079/java-study-tracker.git
 cd java-study-tracker
 ```
 
-### 2. Start the Java Spring Boot Backend
-Open a new terminal and navigate to the `backend` folder:
+### 2. Start the Java Backend
+Open a terminal in the `backend/` folder:
 ```bash
 cd backend
-# On Windows:
+
+# Windows
 mvnw.cmd spring-boot:run
-# On Mac/Linux:
+
+# Mac / Linux
 ./mvnw spring-boot:run
 ```
-*The Java REST API will start on `http://localhost:8080`. It automatically seeds a default user to the database.*
+The REST API starts at **`http://localhost:8080`**  
+It auto-seeds an admin user on first startup.
 
 ### 3. Start the React Frontend
-Open a **second** terminal in the root `java-study-tracker` folder:
+Open a **second terminal** in the root folder:
 ```bash
 npm install
 npm run dev
 ```
-*The React UI will start on `http://localhost:5173`. It will automatically fetch and save data to your Java backend!*
+The UI starts at **`http://localhost:5173`**
 
-## 🌐 Deployment Status
+### 4. Setup AI Mentor (optional)
+Create a `.env` file in the root directory:
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+```
 
-- **Frontend:** Currently deployed on [Vercel](https://java-study-tracker-omega.vercel.app/).
-- **Backend:** Currently running locally. 
-*(Note: Because the backend is running locally, the Vercel live site will not be able to save progress until the Java API is deployed to a cloud provider like Render or Railway).*
+---
+
+## 🌐 Deployment
+
+### Architecture
+```
+Browser
+  │
+  ├──► Vercel (React Frontend)
+  │       └── fetch() calls ──────────────────────►  Render (Spring Boot API)
+  │                                                        └── H2 In-Memory DB
+  │
+  └──► Node.js Serverless (Vercel API route)
+          └── Google Gemini API (AI Mentor)
+```
+
+### Frontend — Vercel
+1. Import `Satyamshiv0079/java-study-tracker` on [vercel.com](https://vercel.com)
+2. Add environment variable: `GEMINI_API_KEY=your_key`
+3. Deploy — Vercel auto-deploys on every push to `main`
+
+### Backend — Render (Docker)
+1. Create a **Web Service** on [render.com](https://render.com)
+2. Connect `Satyamshiv0079/java-study-tracker`
+3. Set **Root Directory** to `backend`
+4. Set **Runtime** to `Docker`
+5. Deploy!
+
+The `backend/Dockerfile` handles the full multi-stage build automatically.
+
+---
+
+## 📡 API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/users` | Get all users |
+| `GET` | `/api/progress/{userId}` | Get all day progress for a user |
+| `POST` | `/api/progress/{userId}/{dayNumber}` | Toggle a day complete/incomplete |
+
+---
 
 ## 📝 License
-This project is open-source and available under the MIT License.
+
+This project is open-source and available under the [MIT License](LICENSE).
+
+---
+
+<div align="center">
+  Built with ☕ Java, ⚛️ React & 💚 by <a href="https://github.com/Satyamshiv0079">Satyamshiv0079</a>
+</div>
