@@ -11,6 +11,7 @@ import AnalyticsTab from './components/AnalyticsTab';
 import { getDaySyllabus } from './data/syllabus';
 
 const USER_ID = 1; // Hardcoded user ID mapped to the Java backend seeder
+const API_BASE = 'https://java-study-tracker.onrender.com';
 
 export default function App() {
   const [storageReady, setStorageReady] = useState(false);
@@ -61,7 +62,7 @@ export default function App() {
     async function loadData() {
       try {
         // 1. Load Day Progress from real Java Backend
-        const response = await fetch(`http://localhost:8080/api/progress/${USER_ID}`);
+        const response = await fetch(`${API_BASE}/api/progress/${USER_ID}`);
         if (response.ok) {
           const progressList = await response.json();
           const completedDaysList = progressList
@@ -88,7 +89,7 @@ export default function App() {
         }
       } catch (err) {
         console.error("Load error:", err);
-        setStorageError('Could not load progress from Java Backend.');
+        setStorageError(`Error: ${err.message}`);
       } finally {
         setStorageReady(true);
       }
@@ -198,7 +199,7 @@ export default function App() {
     
     // Call the real Java Spring Boot API!
     try {
-      await fetch(`http://localhost:8080/api/progress/${USER_ID}/${dayNum}`, {
+      await fetch(`${API_BASE}/api/progress/${USER_ID}/${dayNum}`, {
         method: 'POST'
       });
     } catch (err) {
