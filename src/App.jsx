@@ -400,6 +400,7 @@ export default function App() {
         onAuthSuccess={(user) => {
           setCurrentUser(user);
           localStorage.setItem('studyTrackerUser', JSON.stringify(user));
+          setCurrentTab('dashboard'); // Redirect directly to Home / Dashboard!
         }}
       />
     </div>
