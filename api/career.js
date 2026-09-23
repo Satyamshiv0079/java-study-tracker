@@ -30,23 +30,25 @@ export default async function handler(req, res) {
 
     let prompt = "";
     if (type === 'resume') {
-      prompt = `You are a ruthless, expert Silicon Valley Senior Engineering Manager & Technical Recruiter evaluating candidates for Java / Spring Boot Software Engineering roles. Evaluate the candidate's provided text against the target role: "${targetRole || 'Java Backend Engineer'}".
+      prompt = `You are a brutally honest, senior Tech Recruiter & VP of Engineering at a top tech company evaluating candidates for Java / Spring Boot Software Engineering roles. Do NOT sugarcoat your evaluation. Give a realistic, uninflated ATS compatibility score (0-100%). Most junior/student resumes deserve 30%-65% because they lack metrics, architecture depth, or production tech stack details (e.g. Spring Security, Docker, PostgreSQL, JUnit, Kafka).
+
+Evaluate the candidate's text against the target role: "${targetRole || 'Java Backend Engineer'}".
 
 Return ONLY a single valid JSON object with the following schema:
 {
-  "atsScore": (integer between 0 and 100),
-  "summary": "(2 sentence candid technical summary of the candidate's resume strength)",
+  "atsScore": (uninflated integer between 0 and 100),
+  "summary": "(2 sentence brutally honest technical assessment of why a recruiter would accept or reject this resume in a 6-second scan)",
   "missingKeywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"],
   "bulletUpgrades": [
     {
-      "original": "(weak or generic bullet point from text)",
+      "original": "(weak, generic, or non-quantified bullet point from text)",
       "improved": "(quantifiable, high-impact rewrite using strong engineering verbs & tech stack)",
-      "reason": "(why this rewrite is stronger for recruiters)"
+      "reason": "(brutally honest technical explanation of why this rewrite fixes a flaw)"
     }
   ],
   "syllabusGaps": [
     {
-      "skill": "(missing technical skill)",
+      "skill": "(missing technical skill needed for placement)",
       "recommendedDay": "(e.g. Day 33: Spring Security & JWT Authentication)"
     }
   ]
@@ -55,19 +57,19 @@ Return ONLY a single valid JSON object with the following schema:
 Candidate Resume Text:
 ${text}`;
     } else {
-      prompt = `You are a top Tech Recruiter & LinkedIn Branding Expert specializing in placing Java / Spring Boot Backend Developers. Evaluate the candidate's LinkedIn profile text for the target role: "${targetRole || 'Java Backend Engineer'}".
+      prompt = `You are a brutally honest Tech Headhunter & LinkedIn Branding Director specializing in Java / Spring Boot Backend placements. Do NOT sugarcoat. Evaluate why a recruiter scrolling through 100 profiles would pass over or click on this profile for the target role: "${targetRole || 'Java Backend Engineer'}".
 
 Return ONLY a single valid JSON object with the following schema:
 {
-  "profileScore": (integer between 0 and 100),
-  "feedback": "(2 sentence candid advice on how to rank higher in recruiter search filters)",
+  "profileScore": (uninflated integer between 0 and 100),
+  "feedback": "(2 sentence brutally candid critique explaining why recruiters would filter out or contact this candidate)",
   "headlines": [
-    "(Punchy Headline Option 1)",
-    "(Punchy Headline Option 2)",
-    "(Punchy Headline Option 3)"
+    "(Punchy, Recruiter-Magnet Headline Option 1)",
+    "(Punchy, Recruiter-Magnet Headline Option 2)",
+    "(Punchy, Recruiter-Magnet Headline Option 3)"
   ],
   "missingRecruiterKeywords": ["keyword1", "keyword2", "keyword3", "keyword4"],
-  "outreachTemplate": "(A personalized, non-spammy 2-sentence outreach note to send to Engineering Managers or Recruiters)"
+  "outreachTemplate": "(A direct, non-cringe 2-sentence cold outreach note to send to Engineering Managers or Recruiters)"
 }
 
 Candidate LinkedIn Profile Text:
