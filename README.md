@@ -8,7 +8,7 @@
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.4-6DB33F?style=for-the-badge&logo=springboot)](https://spring.io/projects/spring-boot)
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react)](https://react.dev/)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Satyam_Shiv-0A66C2?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/satyamshiv0079/)
-[![CI Build](https://img.shields.io/badge/CI_Build-Passing-emerald?style=for-the-badge&logo=githubactions)](https://github.com/Satyamshiv0079/java-study-tracker/actions)
+[![CI Build](https://github.com/Satyamshiv0079/java-study-tracker/actions/workflows/build.yml/badge.svg)](https://github.com/Satyamshiv0079/java-study-tracker/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
 ---
