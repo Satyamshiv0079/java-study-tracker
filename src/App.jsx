@@ -9,6 +9,7 @@ import ProjectTab from './components/ProjectTab';
 import MentorTab from './components/MentorTab';
 import AnalyticsTab from './components/AnalyticsTab';
 import CareerHubTab from './components/CareerHubTab';
+import LeaderboardTab from './components/LeaderboardTab';
 import { getDaySyllabus } from './data/syllabus';
 
 const USER_ID = 1; // Hardcoded user ID mapped to the Java backend seeder
@@ -356,6 +357,14 @@ export default function App() {
             completedDsa={completedDsa}
             projectMilestones={projectMilestones}
             vivaScore={vivaScore}
+          />
+        )}
+
+        {currentTab === 'leaderboard' && (
+          <LeaderboardTab
+            completedDays={completedDays}
+            studyHours={studyHours}
+            completedDsa={completedDsa}
           />
         )}
 

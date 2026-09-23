@@ -8,6 +8,7 @@ export default function Navigation({ currentTab, setCurrentTab }) {
     ['interview', 'Mock Vivas'],
     ['project', 'Project Tracker'],
     ['analytics', 'Analytics'],
+    ['leaderboard', 'Leaderboard'],
     ['career', 'Career Hub'],
     ['mentor', 'AI Mentor']
   ];
