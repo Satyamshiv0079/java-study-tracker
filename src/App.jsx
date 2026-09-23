@@ -69,9 +69,9 @@ export default function App() {
 
   // --- Load persisted state from Java API and LocalStorage on mount ---
   useEffect(() => {
-    async function loadData() {
+    async function loadData(retryCount = 0) {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+      const timeoutId = setTimeout(() => controller.abort(), 35000); // 35s timeout for Render cold starts
 
       try {
         // 1. Load Day Progress from real Java Backend
@@ -86,6 +86,7 @@ export default function App() {
             .filter(p => p.completed)
             .map(p => p.dayNumber);
           setCompletedDays(completedDaysList);
+          setStorageError(''); // Clear error on successful sync!
         }
 
         // 2. Load other stats from LocalStorage (since Java backend only tracks days right now)
@@ -105,15 +106,18 @@ export default function App() {
           }
         }
       } catch (err) {
-        console.error("Load error:", err);
+        console.warn("Load attempt error:", err);
+        // Retry once if Render is warming up from sleep mode
+        if (retryCount < 1) {
+          setTimeout(() => loadData(retryCount + 1), 3000);
+          return;
+        }
+
         // Fallback to local storage if Java backend times out or fails
         const localData = localStorage.getItem('studyTrackerData');
         if (localData) {
           const p = JSON.parse(localData);
           if (p.completedDays) setCompletedDays(p.completedDays);
-        }
-        if (err.name !== 'AbortError') {
-          setStorageError(`Backend sync delay: ${err.message}`);
         }
       } finally {
         setStorageReady(true);
