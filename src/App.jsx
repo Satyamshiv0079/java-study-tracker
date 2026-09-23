@@ -123,11 +123,12 @@ export default function App() {
 
     // Keep-alive ping to Render every 10 minutes to prevent cold starts
     const pingInterval = setInterval(() => {
-      fetch(`${API_BASE}/api/progress/${USER_ID}`).catch(() => {});
+      const activeId = currentUser ? currentUser.id : 1;
+      fetch(`${API_BASE}/api/progress/${activeId}`).catch(() => {});
     }, 10 * 60 * 1000);
 
     return () => clearInterval(pingInterval);
-  }, []);
+  }, [currentUser]);
 
   // --- Persist non-day progress to LocalStorage whenever it changes ---
   useEffect(() => {
@@ -403,6 +404,7 @@ export default function App() {
         onAuthSuccess={(user) => {
           setCurrentUser(user);
           localStorage.setItem('studyTrackerUser', JSON.stringify(user));
+          setIsAuthModalOpen(false);
           setCurrentTab('dashboard'); // Redirect directly to Home / Dashboard!
         }}
       />
@@ -417,6 +419,8 @@ export default function App() {
         onLogout={() => {
           setCurrentUser(null);
           localStorage.removeItem('studyTrackerUser');
+          setCompletedDays([]);
+          setCompletedDsa([]);
           setIsProfileModalOpen(false);
           setIsAuthModalOpen(true);
         }}
