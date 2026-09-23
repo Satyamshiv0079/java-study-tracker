@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { Briefcase, FileText, Sparkles, CheckCircle, AlertTriangle, Copy, ArrowRight, BookOpen, UserCheck, Search } from 'lucide-react';
+import { Briefcase, FileText, Sparkles, CheckCircle, AlertTriangle, Copy, ArrowRight, BookOpen, UserCheck, Search, Upload, Link as LinkIcon, X, FileCheck } from 'lucide-react';
 
 export default function CareerHubTab() {
   const [subTab, setSubTab] = useState('resume'); // 'resume' | 'linkedin'
+  const [inputMode, setInputMode] = useState('file'); // 'file' | 'text' | 'url'
   const [targetRole, setTargetRole] = useState('Java Backend Engineer');
   const [inputText, setInputText] = useState('');
+  const [urlInput, setUrlInput] = useState('');
+  const [fileData, setFileData] = useState(null); // { name, base64, mimeType }
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
@@ -38,7 +41,29 @@ Project Developer - Java Study Tracker (2026)
 - Designed RESTful API controllers and services in Spring Boot.
 - Built responsive UI in React with dark mode and analytics dashboard.`;
 
+  function handleFileUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf' && !file.name.endsWith('.pdf') && !file.type.includes('text')) {
+      setErrorMessage("Please upload a valid PDF or text document.");
+      return;
+    }
+
+    setErrorMessage('');
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setFileData({
+        name: file.name,
+        base64: event.target.result,
+        mimeType: file.type || 'application/pdf'
+      });
+    };
+    reader.readAsDataURL(file);
+  }
+
   function handleLoadSample() {
+    setInputMode('text');
     if (subTab === 'resume') {
       setInputText(sampleResumeText);
     } else {
@@ -47,8 +72,8 @@ Project Developer - Java Study Tracker (2026)
   }
 
   async function handleAnalyze() {
-    if (!inputText.trim()) {
-      setErrorMessage("Please paste your resume or profile text before analyzing.");
+    if (!inputText.trim() && !fileData && !urlInput.trim()) {
+      setErrorMessage("Please upload a PDF, paste text, or provide a URL before analyzing.");
       return;
     }
 
@@ -64,6 +89,9 @@ Project Developer - Java Study Tracker (2026)
         body: JSON.stringify({
           type: subTab,
           text: inputText,
+          fileData: fileData?.base64 || null,
+          mimeType: fileData?.mimeType || 'application/pdf',
+          url: urlInput,
           targetRole: targetRole
         })
       });
@@ -100,16 +128,16 @@ Project Developer - Java Study Tracker (2026)
               AI Career & Placement Suite
             </div>
             <h1 className="text-2xl md:text-3xl font-extrabold text-white">
-              Resume & LinkedIn ATS Analyzer
+              Resume PDF & LinkedIn URL Analyzer
             </h1>
             <p className="text-indigo-200 text-sm mt-1 max-w-2xl">
-              Get brutally honest technical feedback, missing recruiter keywords, and bullet point upgrades tailored specifically for Java Backend & Spring Boot engineering roles.
+              Upload your Resume PDF, paste profile text, or provide URLs for brutally honest ATS scoring, missing keywords, and bullet point upgrades tailored for Java Backend roles.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Navigation Sub-Tabs */}
+      {/* Navigation Sub-Tabs & Target Role */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
         <div className="flex items-center gap-2 bg-slate-200/60 dark:bg-slate-900/60 p-1.5 rounded-xl w-full sm:w-auto">
           <button
@@ -152,13 +180,42 @@ Project Developer - Java Study Tracker (2026)
         </div>
       </div>
 
-      {/* Input Section */}
+      {/* Input Mode Selector Bar */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm space-y-4">
-        <div className="flex items-center justify-between">
-          <label className="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-            {subTab === 'resume' ? <FileText className="w-4 h-4 text-indigo-500" /> : <Briefcase className="w-4 h-4 text-indigo-500" />}
-            {subTab === 'resume' ? 'Paste Your Resume Content' : 'Paste Your LinkedIn Headline & About Section'}
-          </label>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setInputMode('file')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${
+                inputMode === 'file'
+                  ? 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400'
+                  : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
+              }`}
+            >
+              <Upload className="w-3.5 h-3.5" /> Upload PDF Document
+            </button>
+            <button
+              onClick={() => setInputMode('url')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${
+                inputMode === 'url'
+                  ? 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400'
+                  : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
+              }`}
+            >
+              <LinkIcon className="w-3.5 h-3.5" /> Analyze Web Link / URL
+            </button>
+            <button
+              onClick={() => setInputMode('text')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${
+                inputMode === 'text'
+                  ? 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400'
+                  : 'text-slate-500 hover:text-slate-800 dark:hover:text-white'
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5" /> Paste Raw Text
+            </button>
+          </div>
+
           <button
             onClick={handleLoadSample}
             className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
@@ -168,17 +225,82 @@ Project Developer - Java Study Tracker (2026)
           </button>
         </div>
 
-        <textarea
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          rows={7}
-          placeholder={
-            subTab === 'resume'
-              ? "Paste your full resume text here (Summary, Projects, Work Experience, Skills)..."
-              : "Paste your LinkedIn Headline, About summary, and recent project descriptions here..."
-          }
-          className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs font-mono rounded-xl p-3.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-y"
-        />
+        {/* INPUT MODE: PDF File Upload */}
+        {inputMode === 'file' && (
+          <div className="space-y-3">
+            {!fileData ? (
+              <label className="border-2 border-dashed border-indigo-200 dark:border-indigo-900/60 hover:border-indigo-500 dark:hover:border-indigo-500 bg-slate-50/50 dark:bg-slate-950/50 rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer transition-all">
+                <Upload className="w-8 h-8 text-indigo-500 mb-2" />
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                  Click or drag your Resume PDF file here
+                </span>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                  Supports PDF format (.pdf)
+                </span>
+                <input
+                  type="file"
+                  accept=".pdf,application/pdf"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+              </label>
+            ) : (
+              <div className="bg-emerald-50/60 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-xl p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <FileCheck className="w-6 h-6 text-emerald-500 shrink-0" />
+                  <div>
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-100 block">{fileData.name}</span>
+                    <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">PDF File Ready for AI Multimodal Analysis</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setFileData(null)}
+                  className="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg transition-colors"
+                  title="Remove File"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* INPUT MODE: URL Link Input */}
+        {inputMode === 'url' && (
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+              Enter Public LinkedIn Profile, GitHub, or Portfolio URL:
+            </label>
+            <div className="relative">
+              <LinkIcon className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+              <input
+                type="url"
+                value={urlInput}
+                onChange={(e) => setUrlInput(e.target.value)}
+                placeholder="https://linkedin.com/in/yourprofile or https://github.com/yourusername"
+                className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs font-mono rounded-xl pl-10 pr-3.5 py-2.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              Note: The AI will fetch public page content to analyze keywords & structure.
+            </p>
+          </div>
+        )}
+
+        {/* INPUT MODE: Raw Text Area */}
+        {inputMode === 'text' && (
+          <textarea
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            rows={7}
+            placeholder={
+              subTab === 'resume'
+                ? "Paste your full resume text here (Summary, Projects, Work Experience, Skills)..."
+                : "Paste your LinkedIn Headline, About summary, and recent project descriptions here..."
+            }
+            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 text-xs font-mono rounded-xl p-3.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-y"
+          />
+        )}
 
         {errorMessage && (
           <div className="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800/60 rounded-xl text-red-600 dark:text-red-400 text-xs flex items-center gap-2 font-medium">

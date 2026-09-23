@@ -18,21 +18,43 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { type, text, targetRole } = req.body;
+    const { type, text, fileData, mimeType, url, targetRole } = req.body;
 
     if (!process.env.GEMINI_API_KEY) {
       return res.status(500).json({ error: { message: "GEMINI_API_KEY is not configured on the server." } });
     }
 
-    if (!text || !text.trim()) {
-      return res.status(400).json({ error: { message: "Please provide content to analyze." } });
+    let fetchedUrlContent = "";
+    if (url && url.trim().startsWith("http")) {
+      try {
+        const urlRes = await fetch(url.trim(), {
+          headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" }
+        });
+        if (urlRes.ok) {
+          const rawHtml = await urlRes.text();
+          // Simple HTML strip to extract text body
+          fetchedUrlContent = rawHtml.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+                                     .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+                                     .replace(/<[^>]+>/g, ' ')
+                                     .replace(/\s+/g, ' ')
+                                     .slice(0, 8000); // Limit to 8000 chars
+        }
+      } catch (e) {
+        console.warn("URL Fetch Warning:", e.message);
+      }
     }
 
-    let prompt = "";
-    if (type === 'resume') {
-      prompt = `You are a brutally honest, senior Tech Recruiter & VP of Engineering at a top tech company evaluating candidates for Java / Spring Boot Software Engineering roles. Do NOT sugarcoat your evaluation. Give a realistic, uninflated ATS compatibility score (0-100%). Most junior/student resumes deserve 30%-65% because they lack metrics, architecture depth, or production tech stack details (e.g. Spring Security, Docker, PostgreSQL, JUnit, Kafka).
+    const contentSourceText = [text, fetchedUrlContent].filter(Boolean).join("\n\nExtracted Web Content:\n");
 
-Evaluate the candidate's text against the target role: "${targetRole || 'Java Backend Engineer'}".
+    if (!contentSourceText && !fileData) {
+      return res.status(400).json({ error: { message: "Please upload a PDF file, paste text, or provide a URL to analyze." } });
+    }
+
+    let systemPrompt = "";
+    if (type === 'resume') {
+      systemPrompt = `You are a brutally honest, senior Tech Recruiter & VP of Engineering at a top tech company evaluating candidates for Java / Spring Boot Software Engineering roles. Do NOT sugarcoat your evaluation. Give a realistic, uninflated ATS compatibility score (0-100%). Most junior/student resumes deserve 30%-65% because they lack metrics, architecture depth, or production tech stack details (e.g. Spring Security, Docker, PostgreSQL, JUnit, Kafka).
+
+Evaluate the candidate's resume/CV against the target role: "${targetRole || 'Java Backend Engineer'}".
 
 Return ONLY a single valid JSON object with the following schema:
 {
@@ -41,7 +63,7 @@ Return ONLY a single valid JSON object with the following schema:
   "missingKeywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"],
   "bulletUpgrades": [
     {
-      "original": "(weak, generic, or non-quantified bullet point from text)",
+      "original": "(weak, generic, or non-quantified bullet point from text or PDF)",
       "improved": "(quantifiable, high-impact rewrite using strong engineering verbs & tech stack)",
       "reason": "(brutally honest technical explanation of why this rewrite fixes a flaw)"
     }
@@ -54,10 +76,10 @@ Return ONLY a single valid JSON object with the following schema:
   ]
 }
 
-Candidate Resume Text:
-${text}`;
+Candidate Text / URL Content:
+${contentSourceText || "Evaluate the attached PDF document."}`;
     } else {
-      prompt = `You are a brutally honest Tech Headhunter & LinkedIn Branding Director specializing in Java / Spring Boot Backend placements. Do NOT sugarcoat. Evaluate why a recruiter scrolling through 100 profiles would pass over or click on this profile for the target role: "${targetRole || 'Java Backend Engineer'}".
+      systemPrompt = `You are a brutally honest Tech Headhunter & LinkedIn Branding Director specializing in Java / Spring Boot Backend placements. Do NOT sugarcoat. Evaluate why a recruiter scrolling through 100 profiles would pass over or click on this profile for the target role: "${targetRole || 'Java Backend Engineer'}".
 
 Return ONLY a single valid JSON object with the following schema:
 {
@@ -72,9 +94,24 @@ Return ONLY a single valid JSON object with the following schema:
   "outreachTemplate": "(A direct, non-cringe 2-sentence cold outreach note to send to Engineering Managers or Recruiters)"
 }
 
-Candidate LinkedIn Profile Text:
-${text}`;
+Candidate LinkedIn / Profile Content:
+${contentSourceText || "Evaluate the attached document / URL."}`;
     }
+
+    const parts = [];
+
+    // If PDF base64 is uploaded, pass directly as inline_data to Gemini!
+    if (fileData) {
+      const cleanBase64 = fileData.includes(',') ? fileData.split(',')[1] : fileData;
+      parts.push({
+        inline_data: {
+          mime_type: mimeType || "application/pdf",
+          data: cleanBase64
+        }
+      });
+    }
+
+    parts.push({ text: systemPrompt });
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
       method: "POST",
@@ -86,7 +123,7 @@ ${text}`;
         contents: [
           {
             role: "user",
-            parts: [{ text: prompt }]
+            parts: parts
           }
         ]
       })
