@@ -10,14 +10,20 @@ import MentorTab from './components/MentorTab';
 import AnalyticsTab from './components/AnalyticsTab';
 import CareerHubTab from './components/CareerHubTab';
 import LeaderboardTab from './components/LeaderboardTab';
+import AuthModal from './components/AuthModal';
 import { getDaySyllabus } from './data/syllabus';
 
-const USER_ID = 1; // Hardcoded user ID mapped to the Java backend seeder
 const API_BASE = 'https://java-study-tracker.onrender.com';
 
 export default function App() {
   const [storageReady, setStorageReady] = useState(false);
   const [storageError, setStorageError] = useState(null);
+
+  const [currentUser, setCurrentUser] = useState(() => {
+    const saved = localStorage.getItem('studyTrackerUser');
+    return saved ? JSON.parse(saved) : { id: 1, username: 'satyam', email: 'satyam@example.com' };
+  });
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const [currentTab, setCurrentTab] = useState('dashboard');
   const [activeDay, setActiveDay] = useState(1);
@@ -67,7 +73,8 @@ export default function App() {
 
       try {
         // 1. Load Day Progress from real Java Backend
-        const response = await fetch(`${API_BASE}/api/progress/${USER_ID}`, {
+        const userId = currentUser ? currentUser.id : 1;
+        const response = await fetch(`${API_BASE}/api/progress/${userId}`, {
           signal: controller.signal
         });
         clearTimeout(timeoutId);
@@ -222,7 +229,8 @@ export default function App() {
     
     // Call the real Java Spring Boot API!
     try {
-      await fetch(`${API_BASE}/api/progress/${USER_ID}/${dayNum}`, {
+      const userId = currentUser ? currentUser.id : 1;
+      await fetch(`${API_BASE}/api/progress/${userId}/${dayNum}`, {
         method: 'POST'
       });
     } catch (err) {
@@ -287,6 +295,8 @@ export default function App() {
         handleTimerControl={handleTimerControl}
         handleTimerReset={handleTimerReset}
         formatTime={formatTime}
+        currentUser={currentUser}
+        onOpenAuth={() => setIsAuthModalOpen(true)}
       />
 
       <Navigation currentTab={currentTab} setCurrentTab={setCurrentTab} />
@@ -383,6 +393,15 @@ export default function App() {
           />
         )}
       </main>
+
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onAuthSuccess={(user) => {
+          setCurrentUser(user);
+          localStorage.setItem('studyTrackerUser', JSON.stringify(user));
+        }}
+      />
     </div>
   );
 }

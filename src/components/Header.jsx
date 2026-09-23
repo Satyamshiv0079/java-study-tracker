@@ -7,7 +7,9 @@ export default function Header({
   timerSeconds,
   handleTimerControl,
   handleTimerReset,
-  formatTime
+  formatTime,
+  currentUser,
+  onOpenAuth
 }) {
   const { theme, toggleTheme } = useTheme();
 
@@ -28,6 +30,15 @@ export default function Header({
       </div>
 
       <div className="flex items-center gap-3">
+        {/* User Account / Auth Button */}
+        <button
+          onClick={onOpenAuth}
+          className="px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-xs font-bold transition-all flex items-center gap-1.5"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+          {currentUser ? currentUser.username : 'Log In / Sign Up'}
+        </button>
+
         {/* Theme Toggle */}
         <button
           onClick={toggleTheme}
