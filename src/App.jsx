@@ -8,6 +8,7 @@ import InterviewTab from './components/InterviewTab';
 import ProjectTab from './components/ProjectTab';
 import MentorTab from './components/MentorTab';
 import AnalyticsTab from './components/AnalyticsTab';
+import CareerHubTab from './components/CareerHubTab';
 import { getDaySyllabus } from './data/syllabus';
 
 const USER_ID = 1; // Hardcoded user ID mapped to the Java backend seeder
@@ -356,6 +357,10 @@ export default function App() {
             projectMilestones={projectMilestones}
             vivaScore={vivaScore}
           />
+        )}
+
+        {currentTab === 'career' && (
+          <CareerHubTab />
         )}
 
         {currentTab === 'mentor' && (
