@@ -128,7 +128,7 @@ export default function SyllabusTab({
             <div className="text-xs text-slate-600 dark:text-slate-400">Need this explained properly? Ask the real AI Mentor.</div>
             <button
               onClick={() => setCurrentTab('mentor')}
-              className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-slate-900 dark:text-white font-bold text-xs transition shadow-[0_0_10px_rgba(79,70,229,0.2)]"
+              className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition shadow-[0_0_10px_rgba(79,70,229,0.2)]"
             >
               Open Mentor Chat
             </button>

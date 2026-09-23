@@ -28,7 +28,7 @@ export default function MentorTab({
           <div key={i} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
               msg.sender === 'user'
-                ? 'bg-indigo-600 text-slate-900 dark:text-white rounded-tr-sm shadow-[0_4px_10px_rgba(79,70,229,0.2)]'
+                ? 'bg-indigo-600 text-white rounded-tr-sm shadow-[0_4px_10px_rgba(79,70,229,0.2)]'
                 : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-sm border border-slate-300 dark:border-slate-700'
             }`}>
               <div className="whitespace-pre-wrap">{msg.text}</div>
@@ -59,7 +59,7 @@ export default function MentorTab({
           <button
             type="submit"
             disabled={isGenerating || !chatInput.trim()}
-            className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-slate-900 dark:text-white font-bold rounded-lg transition shadow-[0_0_8px_rgba(79,70,229,0.2)]"
+            className="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold rounded-lg transition shadow-[0_0_8px_rgba(79,70,229,0.2)]"
           >
             Send
           </button>

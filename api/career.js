@@ -78,6 +78,33 @@ Return ONLY a single valid JSON object with the following schema:
 
 Candidate Text / URL Content:
 ${contentSourceText || "Evaluate the attached PDF document."}`;
+    } else if (type === 'code_review') {
+      systemPrompt = `You are a Senior Principal Java Engineer. Review this Java DSA solution for "${targetRole || 'Java Engineer'}".
+
+Evaluate and return ONLY a valid JSON object matching this schema:
+{
+  "timeComplexity": "e.g. O(N)",
+  "spaceComplexity": "e.g. O(1)",
+  "isOptimal": true/false,
+  "feedback": "2 sentence candid technical review of edge cases & logic optimization."
+}
+
+Code to review:
+${contentSourceText}`;
+    } else if (type === 'interview_eval') {
+      systemPrompt = `You are a Senior Java Technical Interviewer. Evaluate candidate's verbal answer for this interview question.
+
+Return ONLY a valid JSON object matching this schema:
+{
+  "score": (integer 1-10),
+  "isPass": true/false,
+  "feedback": "2 sentence candid technical evaluation of candidate's answer.",
+  "missingKeywords": ["term1", "term2"],
+  "followUpQuestion": "(One challenging follow-up question related to this topic)"
+}
+
+Question & Answer Context:
+${contentSourceText}`;
     } else {
       systemPrompt = `You are a brutally honest Tech Headhunter & LinkedIn Branding Director specializing in Java / Spring Boot Backend placements. Do NOT sugarcoat. Evaluate why a recruiter scrolling through 100 profiles would pass over or click on this profile for the target role: "${targetRole || 'Java Backend Engineer'}".
 

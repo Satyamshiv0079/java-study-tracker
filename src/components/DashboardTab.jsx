@@ -81,7 +81,7 @@ export default function DashboardTab({
             <p className="text-sm text-slate-600 dark:text-slate-400 mt-2 line-clamp-3 leading-relaxed">{dayData.theory}</p>
 
             <div className="mt-5 flex flex-wrap gap-2.5 mb-4">
-              <button onClick={() => setCurrentTab('syllabus')} className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-600/20 text-slate-900 dark:text-white text-xs font-bold transition-all">
+              <button onClick={() => setCurrentTab('syllabus')} className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-600/20 text-white text-xs font-bold transition-all">
                 Browse Day Notes
               </button>
               <button onClick={() => setCurrentTab('coding')} className="px-4 py-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-700 hover:border-slate-400 dark:border-slate-600 border border-transparent text-slate-800 dark:text-slate-200 text-xs font-bold transition-all">
@@ -111,7 +111,7 @@ export default function DashboardTab({
                   key={d}
                   onClick={() => setActiveDay(d)}
                   className={`relative text-xs font-mono rounded-lg py-2 border transition-all ${
-                    activeDay === d ? 'bg-indigo-600 border-indigo-500 text-slate-900 dark:text-white shadow-[0_0_10px_rgba(79,70,229,0.4)]' :
+                    activeDay === d ? 'bg-indigo-600 border-indigo-500 text-white shadow-[0_0_10px_rgba(79,70,229,0.4)]' :
                     completedDays.includes(d) ? 'bg-emerald-950/40 border-emerald-800 text-emerald-300 hover:border-emerald-600' :
                     'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-400 dark:border-slate-600 hover:bg-slate-100 dark:bg-slate-800'
                   }`}
