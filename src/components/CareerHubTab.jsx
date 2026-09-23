@@ -134,6 +134,13 @@ Project Developer - Java Study Tracker (2026)
               Upload your Resume PDF, paste profile text, or provide URLs for brutally honest ATS scoring, missing keywords, and bullet point upgrades tailored for Java Backend roles.
             </p>
           </div>
+
+          <button
+            onClick={() => window.print()}
+            className="px-4 py-2.5 bg-indigo-500 hover:bg-indigo-400 text-white text-xs font-bold rounded-xl shadow-md flex items-center gap-2 shrink-0 transition-all border border-indigo-400/30"
+          >
+            <FileText className="w-4 h-4" /> Export ATS Resume PDF
+          </button>
         </div>
       </div>
 
