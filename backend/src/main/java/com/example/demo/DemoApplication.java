@@ -18,13 +18,13 @@ public class DemoApplication {
     }
 
     @Bean
-    CommandLineRunner run(UserRepository userRepository) {
+    CommandLineRunner run(UserRepository userRepository, org.springframework.security.crypto.password.PasswordEncoder encoder) {
         return args -> {
             if (!userRepository.existsByUsername("satyam")) {
                 User defaultUser = User.builder()
                         .username("satyam")
                         .email("satyam@example.com")
-                        .password("secret123") // No encryption needed for local test mode
+                        .password(encoder.encode("secret123")) // BCrypt encrypted!
                         .role("USER")
                         .build();
                 userRepository.save(defaultUser);
