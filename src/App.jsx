@@ -60,9 +60,15 @@ export default function App() {
   // --- Load persisted state from Java API and LocalStorage on mount ---
   useEffect(() => {
     async function loadData() {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
       try {
         // 1. Load Day Progress from real Java Backend
-        const response = await fetch(`${API_BASE}/api/progress/${USER_ID}`);
+        const response = await fetch(`${API_BASE}/api/progress/${USER_ID}`, {
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
         if (response.ok) {
           const progressList = await response.json();
           const completedDaysList = progressList
@@ -89,12 +95,27 @@ export default function App() {
         }
       } catch (err) {
         console.error("Load error:", err);
-        setStorageError(`Error: ${err.message}`);
+        // Fallback to local storage if Java backend times out or fails
+        const localData = localStorage.getItem('studyTrackerData');
+        if (localData) {
+          const p = JSON.parse(localData);
+          if (p.completedDays) setCompletedDays(p.completedDays);
+        }
+        if (err.name !== 'AbortError') {
+          setStorageError(`Backend sync delay: ${err.message}`);
+        }
       } finally {
         setStorageReady(true);
       }
     }
     loadData();
+
+    // Keep-alive ping to Render every 10 minutes to prevent cold starts
+    const pingInterval = setInterval(() => {
+      fetch(`${API_BASE}/api/progress/${USER_ID}`).catch(() => {});
+    }, 10 * 60 * 1000);
+
+    return () => clearInterval(pingInterval);
   }, []);
 
   // --- Persist non-day progress to LocalStorage whenever it changes ---
@@ -250,7 +271,7 @@ export default function App() {
   if (!storageReady) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center text-slate-500 dark:text-slate-400 text-sm transition-colors duration-200">
-        Syncing with Firebase Cloud...
+        Connecting to Java Spring Boot Backend...
       </div>
     );
   }
