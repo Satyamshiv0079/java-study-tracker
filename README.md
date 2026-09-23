@@ -7,6 +7,7 @@
 [![Java](https://img.shields.io/badge/Java-17-ED8B00?style=for-the-badge&logo=openjdk)](https://openjdk.org/)
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.4-6DB33F?style=for-the-badge&logo=springboot)](https://spring.io/projects/spring-boot)
 [![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react)](https://react.dev/)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Satyam_Shiv-0A66C2?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/satyamshiv0079/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
 ---
@@ -186,5 +187,6 @@ This project is open-source and available under the [MIT License](LICENSE).
 ---
 
 <div align="center">
-  Built with ☕ Java, ⚛️ React & 💚 by <a href="https://github.com/Satyamshiv0079">Satyamshiv0079</a>
+  Built with ☕ Java, ⚛️ React & 💚 by <strong><a href="https://github.com/Satyamshiv0079">Satyam Shiv</a></strong><br/>
+  Connect on <a href="https://www.linkedin.com/in/satyamshiv0079/">LinkedIn</a> | Star ⭐️ this repo if you find it helpful!
 </div>
