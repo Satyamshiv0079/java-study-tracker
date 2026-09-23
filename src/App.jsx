@@ -11,6 +11,7 @@ import AnalyticsTab from './components/AnalyticsTab';
 import CareerHubTab from './components/CareerHubTab';
 import LeaderboardTab from './components/LeaderboardTab';
 import AuthModal from './components/AuthModal';
+import ProfileModal from './components/ProfileModal';
 import { getDaySyllabus } from './data/syllabus';
 
 const API_BASE = 'https://java-study-tracker.onrender.com';
@@ -21,9 +22,10 @@ export default function App() {
 
   const [currentUser, setCurrentUser] = useState(() => {
     const saved = localStorage.getItem('studyTrackerUser');
-    return saved ? JSON.parse(saved) : { id: 1, username: 'satyam', email: 'satyam@example.com' };
+    return saved ? JSON.parse(saved) : null;
   });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   const [currentTab, setCurrentTab] = useState('dashboard');
   const [activeDay, setActiveDay] = useState(1);
@@ -297,6 +299,7 @@ export default function App() {
         formatTime={formatTime}
         currentUser={currentUser}
         onOpenAuth={() => setIsAuthModalOpen(true)}
+        onOpenProfile={() => setIsProfileModalOpen(true)}
       />
 
       <Navigation currentTab={currentTab} setCurrentTab={setCurrentTab} />
@@ -401,6 +404,21 @@ export default function App() {
           setCurrentUser(user);
           localStorage.setItem('studyTrackerUser', JSON.stringify(user));
           setCurrentTab('dashboard'); // Redirect directly to Home / Dashboard!
+        }}
+      />
+
+      <ProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        currentUser={currentUser}
+        completedDays={completedDays}
+        studyHours={studyHours}
+        completedDsa={completedDsa}
+        onLogout={() => {
+          setCurrentUser(null);
+          localStorage.removeItem('studyTrackerUser');
+          setIsProfileModalOpen(false);
+          setIsAuthModalOpen(true);
         }}
       />
     </div>
