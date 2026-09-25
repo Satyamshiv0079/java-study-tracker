@@ -16,10 +16,10 @@ export default function MentorTab({
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
           </span>
-          AI Mentor (Node.js Backend)
+          AI Mentor & Placement Coach
         </h2>
         <span className="text-[10px] text-emerald-500 font-semibold uppercase tracking-wider bg-emerald-900/30 px-2 py-0.5 rounded border border-emerald-800/50">
-          Secure Proxy
+          RAG + MCP Agent
         </span>
       </div>
 

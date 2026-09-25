@@ -1,21 +1,30 @@
 import React from 'react';
-import { Trophy, Award, Flame, Star, CheckCircle, Clock, Code, ShieldCheck } from 'lucide-react';
+import { Trophy, Award, Flame, Star, CheckCircle, Clock, Code, ShieldCheck, Users } from 'lucide-react';
 
 export default function LeaderboardTab({ currentUser, completedDays, studyHours, completedDsa }) {
-  // Demo Leaderboard entries featuring user + top community learners
+  function getEarnedBadge(daysCount) {
+    if (daysCount >= 45) return "Java Master";
+    if (daysCount >= 35) return "System Architect";
+    if (daysCount >= 25) return "Spring Developer";
+    if (daysCount >= 10) return "Java Specialist";
+    return "Backend Aspirant";
+  }
+
+  const userDaysCount = completedDays.length;
+  const userEarnedBadge = getEarnedBadge(userDaysCount);
+
+  // Community benchmark entries + logged-in user profile
   const communityUsers = [
     {
-      rank: 1,
       name: currentUser ? `${currentUser.username} (You)` : "Satyam Shiv (You)",
       isUser: true,
-      daysCompleted: completedDays.length,
+      daysCompleted: userDaysCount,
       studyHours: studyHours,
       dsaSolved: completedDsa.length,
-      badge: "Java Master",
+      badge: userEarnedBadge,
       avatar: "🚀"
     },
     {
-      rank: 2,
       name: "Aarav Sharma",
       isUser: false,
       daysCompleted: 38,
@@ -25,7 +34,6 @@ export default function LeaderboardTab({ currentUser, completedDays, studyHours,
       avatar: "☕"
     },
     {
-      rank: 3,
       name: "Priya Patel",
       isUser: false,
       daysCompleted: 32,
@@ -35,7 +43,6 @@ export default function LeaderboardTab({ currentUser, completedDays, studyHours,
       avatar: "💻"
     },
     {
-      rank: 4,
       name: "Rohan Verma",
       isUser: false,
       daysCompleted: 27,
@@ -45,7 +52,6 @@ export default function LeaderboardTab({ currentUser, completedDays, studyHours,
       avatar: "🔥"
     },
     {
-      rank: 5,
       name: "Ananya Gupta",
       isUser: false,
       daysCompleted: 21,
@@ -66,21 +72,24 @@ export default function LeaderboardTab({ currentUser, completedDays, studyHours,
         <div>
           <div className="flex items-center gap-2 text-amber-300 font-semibold text-xs tracking-wider uppercase mb-1">
             <Trophy className="w-4 h-4 text-amber-400" />
-            Global Placement Community Leaderboard
+            Placement Community Benchmarks
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-white">
-            Top Student Developers
+          <h1 className="text-2xl md:text-3xl font-extrabold text-white flex items-center gap-2">
+            Learner Benchmarks
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-mono font-normal">
+              Demo Data
+            </span>
           </h1>
           <p className="text-amber-200 text-sm mt-1 max-w-2xl">
-            Rankings based on verified Java course completion, logged study hours, and solved DSA LeetCode challenges.
+            Compare your live progress against target placement benchmarks across Java course completion, study hours, and DSA LeetCode challenges.
           </p>
         </div>
 
         <div className="flex items-center gap-3 bg-slate-950/60 p-3.5 rounded-xl border border-amber-500/30">
           <Flame className="w-8 h-8 text-amber-500 shrink-0" />
           <div>
-            <span className="text-[11px] text-amber-300 uppercase font-bold block">Your Current Streak</span>
-            <span className="text-lg font-extrabold text-white">{completedDays.length} Days Active</span>
+            <span className="text-[11px] text-amber-300 uppercase font-bold block">Your Earned Badge</span>
+            <span className="text-sm font-extrabold text-white">{userEarnedBadge} ({userDaysCount}/45 Days)</span>
           </div>
         </div>
       </div>
@@ -89,10 +98,12 @@ export default function LeaderboardTab({ currentUser, completedDays, studyHours,
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
         <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-amber-500" />
-            Live Rankings
+            <Users className="w-4 h-4 text-amber-500" />
+            Benchmark Peer Rankings
           </h3>
-          <span className="text-xs font-mono text-slate-500">Updated in real-time</span>
+          <span className="text-xs font-mono text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
+            Updated via User Session
+          </span>
         </div>
 
         <div className="overflow-x-auto">
@@ -136,7 +147,11 @@ export default function LeaderboardTab({ currentUser, completedDays, studyHours,
                     {user.dsaSolved} / 120
                   </td>
                   <td className="py-4 px-4 text-right">
-                    <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 text-[10px] font-bold rounded-full">
+                    <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full border ${
+                      user.isUser
+                        ? 'bg-amber-500/20 text-amber-400 border-amber-500/40 font-mono'
+                        : 'bg-amber-100 dark:bg-amber-950/60 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300'
+                    }`}>
                       {user.badge}
                     </span>
                   </td>

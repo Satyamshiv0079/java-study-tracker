@@ -59,7 +59,7 @@ export default function App() {
 
   // AI Mentor
   const [chatMessages, setChatMessages] = useState([
-    { sender: 'mentor', text: "Hi, I'm your Java/Spring/DSA study mentor. Ask me to explain a concept, quiz you, review your code, or fill in a day that doesn't have real content yet. (Powered securely by Node.js Backend)." }
+    { sender: 'mentor', text: "Welcome to CodeMentor! I'm your AI Backend Engineering Mentor & Placement Coach. Ask me to explain any Java 17, Spring Boot 3.4, SQL, or System Design concept, quiz you on your 45-day curriculum, or review your code." }
   ]);
   const [chatInput, setChatInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
