@@ -1,6 +1,6 @@
-# 🚀 45-Day Java Full-Stack Study Tracker
+# 🚀 CodeMentor — MCP & RAG Powered Java Learning Agent
 
-> A highly interactive, full-stack study tracker designed to guide developers from zero to a backend placement in 45 days.
+> An AI-powered Java backend learning platform that combines structured learning, live coding, personalized interview preparation, RAG-based knowledge retrieval, and Model Context Protocol (MCP) tools.
 
 [![Frontend](https://img.shields.io/badge/Frontend-Vercel-black?style=for-the-badge&logo=vercel)](https://java-study-tracker-omega.vercel.app/)
 [![Backend](https://img.shields.io/badge/Backend-Render-46E3B7?style=for-the-badge&logo=render)](https://java-study-tracker.onrender.com/api/progress/1)
@@ -16,25 +16,145 @@
 ## 🌐 Live Demo
 
 | Service | URL |
-|---------|-----|
-| **Frontend (React + Vite)** | https://java-study-tracker-omega.vercel.app/ |
-| **Backend REST API (Spring Boot)** | https://java-study-tracker.onrender.com/api/progress/1 |
+|:---|:---|
+| **Frontend Web Application (React + Vite)** | https://java-study-tracker-omega.vercel.app/ |
+| **Backend REST API (Spring Boot 3.4)** | https://java-study-tracker.onrender.com/api/progress/1 |
 | **GitHub Repository** | https://github.com/Satyamshiv0079/java-study-tracker |
 
-> ⚠️ The backend runs on Render's **free tier** and may take ~50 seconds to wake up after inactivity. This is expected behaviour.
+> ⚠️ The backend runs on Render's **free tier** and may take ~35 seconds to wake up after inactivity. Automatic retries & keep-alive pings are included.
 
 ---
 
-## ✨ Features
+## 📌 Overview
 
-- **📚 45-Day Curated Syllabus** — Complete roadmap: Java Core → OOP → DSA → SQL → Spring Boot → Docker → CI/CD → System Design
-- **☕ Real Java Spring Boot REST API** — Full 3-layer architecture (Controller → Service → Repository) powered by JPA & Hibernate
-- **🎥 Embedded YouTube Lessons** — Hand-curated tutorials from freeCodeCamp, Amigoscode, ByteByteGo and more — one per day
-- **💻 DSA Practice Sandbox** — 45 curated LeetCode problems with Java starter code (Easy → Hard progression)
-- **📊 Analytics Dashboard** — Visual charts tracking study hours, DSA completion, and placement readiness score
-- **🤖 AI Mentor** — Integrated Google Gemini-powered chat to explain concepts, quiz you, and review your code
-- **🍅 Pomodoro Timer** — Built-in 25m / 50m / 10m study timer
-- **🌗 Dark / Light Mode** — Glassmorphic dark mode and clean light mode
+**CodeMentor** is a production-oriented Java learning and interview preparation platform designed around a structured 45-day backend engineering curriculum.
+
+The platform combines:
+- 📚 **Structured Java & Backend Curriculum**
+- 💻 **Live Java Coding & JVM Execution (Piston Engine)**
+- 🤖 **AI-Powered Code Review**
+- 🎙️ **AI Technical Mock Interviews**
+- 📊 **Learning Analytics & Placement Readiness Scoring**
+- 📝 **Daily Study Notes**
+- 💼 **AI-Powered Career & ATS Resume Tools**
+- 🧠 **Retrieval-Augmented Generation (RAG)**
+- 🔌 **Model Context Protocol (MCP) Integration**
+- 🐙 **GitHub Activity Integration**
+- 🐳 **Dockerized Deployment**
+- 🔐 **Secure Authenticated Accounts (BCrypt + Spring Security)**
+
+The goal is to move beyond a traditional study tracker and provide an **AI Learning Agent** that understands both the learner's knowledge base and their actual learning progress.
+
+---
+
+## 🏗️ System Architecture
+
+```mermaid
+flowchart TB
+    A["React 18 + Vite Frontend"] --> B["Spring Boot 3.4 REST API"]
+    B --> C["Authentication & Security (BCrypt)"]
+    B --> D["Learning Platform Services"]
+    B --> E["AI Agent Controller"]
+    
+    D --> F[("Neon PostgreSQL Cloud DB")]
+    
+    E --> H["RAG Knowledge Engine (/api/rag)"]
+    E --> I["MCP Client Manager (/api/mcp)"]
+    
+    H --> F
+    I --> J["Study MCP Server"]
+    I --> K["DSA MCP Server"]
+    I --> L["GitHub MCP Server (/api/github-mcp)"]
+    
+    J --> F
+    K --> F
+    L --> M["GitHub REST API"]
+    
+    E --> N["Google Gemini 2.5 Flash LLM"]
+    D --> O["Piston Live JVM Execution Engine"]
+    B --> P["Docker Containerization"]
+```
+
+---
+
+## 🧠 AI Architecture (RAG vs. MCP)
+
+CodeMentor strictly separates **knowledge retrieval** from **application tool access**.
+
+```mermaid
+flowchart LR
+    subgraph RAG ["RAG Knowledge Engine"]
+        Docs["Learning Material / Notes"] --> Chunk["Chunking & Embeddings (text-embedding-004)"] --> VectorDB[("Vector Storage")] --> Context["Relevant Context"]
+    end
+
+    subgraph MCP ["Model Context Protocol (MCP)"]
+        Agent["AI Agent"] --> StudyMCP["Study MCP (Progress & Analytics)"]
+        Agent --> DSAMCP["DSA MCP (Submissions & History)"]
+        Agent --> GitHubMCP["GitHub MCP (Commits & Repos)"]
+    end
+
+    Context --> FinalAgent["Grounded Personal AI Agent"]
+    StudyMCP --> FinalAgent
+    DSAMCP --> FinalAgent
+    GitHubMCP --> FinalAgent
+```
+
+---
+
+## 🧰 Technology Stack
+
+| Layer | Technology |
+| :--- | :--- |
+| **Frontend** | React 18, Vite, Tailwind CSS, Lucide Icons, Recharts |
+| **Backend** | Java 17, Spring Boot 3.4, Spring Data JPA, Lombok |
+| **Security** | Spring Security 6, BCrypt Password Hashing, CORS Wildcard |
+| **Database** | PostgreSQL 15 (Neon Cloud DB) |
+| **AI LLM** | Google Gemini 2.5 Flash (`v1beta`) |
+| **RAG Pipeline** | Vector Embeddings (`text-embedding-004`) + Grounded Similarity Search |
+| **MCP Suite** | Study MCP, DSA MCP, GitHub MCP Servers (`/api/mcp` & `/api/github-mcp`) |
+| **Code Execution** | Piston Code Execution Engine API |
+| **Containerization** | Docker & Docker Compose |
+| **CI/CD** | GitHub Actions Pipeline (`.github/workflows/build.yml`) |
+| **Hosting** | Vercel (Frontend), Render (Backend Docker), Neon (PostgreSQL) |
+
+---
+
+## 🎯 Core Features
+
+### 1. 📊 Learning Dashboard
+- 45-day progress grid with completed/pending indicators
+- Study hours logged & active learning streak counters
+- Dynamic placement-readiness heuristic scoring
+
+### 2. 📚 Structured 45-Day Curriculum
+- Complete roadmap: Java Core → OOP → Collections → Exception Handling → Multithreading & Concurrency → JVM & Memory → SQL → Spring Boot → REST APIs → Spring Security → Docker → Microservices → System Design.
+
+### 3. 💻 Live Java DSA Sandbox & AI Code Review
+- Live Java 17 compilation & execution via Piston API with stdout, stderr, and memory exit codes.
+- Instant AI Code Review evaluating $O(N)$ time complexity, $O(1)$ space complexity, edge cases, and optimization strategies.
+
+### 4. 🎙️ AI Technical Mock Interviewer
+- Interactive verbal interview simulator evaluating answers across Java, Spring, SQL, and System Design with scores (1-10), missing keywords, and follow-up questions.
+
+### 5. 🧠 RAG & MCP Agent Capabilities
+- **Personalized Recommendations:** *"What should I study today?"* combines live user progress with RAG curriculum chunks.
+- **Adaptive Interviews:** Focuses questions on user's specific weak topics based on past study logs.
+- **Indexed Daily Notebook:** Personal notes automatically indexed for instant retrieval.
+
+### 6. 💼 AI Career Hub
+- **ATS Resume Analyzer:** PDF upload parsing with uninflated compatibility scoring (0-100%), bullet rewrites, and syllabus gap analysis.
+- **LinkedIn Optimizer:** Recruiter-magnet headlines and cold outreach templates.
+
+---
+
+## 🚧 Feature Roadmap & Completion Status
+
+- [x] **Phase 1 — Foundation:** 45-day curriculum, DSA sandbox, AI code review, authentication, PostgreSQL persistence, Docker containerization.
+- [x] **Phase 2 — RAG Engine:** Knowledge document ingestion, embeddings API (`text-embedding-004`), grounded similarity context.
+- [x] **Phase 3 — MCP Tool Suite:** Serverless MCP Tool server (`/api/mcp`) & Spring Boot `McpController`.
+- [x] **Phase 4 — Agent Orchestration:** RAG + MCP Agent loop synthesizes user state + domain knowledge in AI Mentor.
+- [x] **Phase 5 — GitHub Integration:** GitHub commit activity analysis and repo language breakdown (`/api/github-mcp`).
+- [x] **Phase 6 — Production Hardening:** CORS wildcards, error fallback boundaries, 35s cold start timeouts, and GitHub Actions CI/CD validation.
 
 ---
 
@@ -59,135 +179,19 @@
   <img src="./docs/Analytics.png.png" alt="Analytics View" width="800"/>
   <br/><em>Analytics — study hours and placement readiness charts</em>
 </div>
-<br/>
-<div align="center">
-  <img src="./docs/Mentor.png.png" alt="AI Mentor" width="800"/>
-  <br/><em>AI Mentor — powered by Google Gemini</em>
-</div>
 
 ---
 
-## 🛠️ Tech Stack
+## 👨‍💻 Author
 
-### Frontend
-| Technology | Purpose |
-|-----------|---------|
-| React 18 + Vite | UI framework & build tool |
-| Tailwind CSS | Styling |
-| Recharts | Analytics charts |
-| Lucide Icons | Icon library |
+**Satyam Shiv**  
+*Backend-focused Software Engineer \| Java \| Spring Boot \| Python \| AI*
 
-### Backend
-| Technology | Purpose |
-|-----------|---------|
-| Java 17 | Core language |
-| Spring Boot 3.4 | REST API framework |
-| Spring Data JPA / Hibernate | ORM & database access |
-| Spring Security | CORS & request security |
-| H2 (In-Memory) | Development database |
-| Docker | Containerization for Render deployment |
-
-### Infrastructure
-| Service | Purpose |
-|---------|---------|
-| Vercel | Frontend hosting (auto-deploy from GitHub) |
-| Render | Backend hosting (Docker container) |
-| GitHub | Source control & CI trigger |
+- **GitHub:** [Satyamshiv0079](https://github.com/Satyamshiv0079)
+- **LinkedIn:** [Satyam Shiv](https://www.linkedin.com/in/satyamshiv0079/)
 
 ---
 
-## 🚀 Getting Started Locally
+## 📜 License
 
-This is a **monorepo** — the React frontend and Spring Boot backend live in the same repository.
-
-### Prerequisites
-- Node.js 18+
-- Java 17+
-- Maven (included via `mvnw` wrapper)
-
-### 1. Clone the repository
-```bash
-git clone https://github.com/Satyamshiv0079/java-study-tracker.git
-cd java-study-tracker
-```
-
-### 2. Start the Java Backend
-Open a terminal in the `backend/` folder:
-```bash
-cd backend
-
-# Windows
-mvnw.cmd spring-boot:run
-
-# Mac / Linux
-./mvnw spring-boot:run
-```
-The REST API starts at **`http://localhost:8080`**  
-It auto-seeds an admin user on first startup.
-
-### 3. Start the React Frontend
-Open a **second terminal** in the root folder:
-```bash
-npm install
-npm run dev
-```
-The UI starts at **`http://localhost:5173`**
-
-### 4. Setup AI Mentor (optional)
-Create a `.env` file in the root directory:
-```env
-GEMINI_API_KEY=your_gemini_api_key_here
-```
-
----
-
-## 🌐 Deployment
-
-### Architecture
-```
-Browser
-  │
-  ├──► Vercel (React Frontend)
-  │       └── fetch() calls ──────────────────────►  Render (Spring Boot API)
-  │                                                        └── H2 In-Memory DB
-  │
-  └──► Node.js Serverless (Vercel API route)
-          └── Google Gemini API (AI Mentor)
-```
-
-### Frontend — Vercel
-1. Import `Satyamshiv0079/java-study-tracker` on [vercel.com](https://vercel.com)
-2. Add environment variable: `GEMINI_API_KEY=your_key`
-3. Deploy — Vercel auto-deploys on every push to `main`
-
-### Backend — Render (Docker)
-1. Create a **Web Service** on [render.com](https://render.com)
-2. Connect `Satyamshiv0079/java-study-tracker`
-3. Set **Root Directory** to `backend`
-4. Set **Runtime** to `Docker`
-5. Deploy!
-
-The `backend/Dockerfile` handles the full multi-stage build automatically.
-
----
-
-## 📡 API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/users` | Get all users |
-| `GET` | `/api/progress/{userId}` | Get all day progress for a user |
-| `POST` | `/api/progress/{userId}/{dayNumber}` | Toggle a day complete/incomplete |
-
----
-
-## 📝 License
-
-This project is open-source and available under the [MIT License](LICENSE).
-
----
-
-<div align="center">
-  Built with ☕ Java, ⚛️ React & 💚 by <strong><a href="https://github.com/Satyamshiv0079">Satyam Shiv</a></strong><br/>
-  Connect on <a href="https://www.linkedin.com/in/satyamshiv0079/">LinkedIn</a> | Star ⭐️ this repo if you find it helpful!
-</div>
+This project is licensed under the [MIT License](LICENSE).
