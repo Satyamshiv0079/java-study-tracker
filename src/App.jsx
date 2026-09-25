@@ -269,6 +269,7 @@ export default function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           activeDayTitle: `Day ${activeDay} - ${dayData?.title || 'Unknown'}`,
+          userState: { completedDays, completedDsa, studyHours },
           historyContent
         })
       });
@@ -380,6 +381,7 @@ export default function App() {
 
         {currentTab === 'leaderboard' && (
           <LeaderboardTab
+            currentUser={currentUser}
             completedDays={completedDays}
             studyHours={studyHours}
             completedDsa={completedDsa}

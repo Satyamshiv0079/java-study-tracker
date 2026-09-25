@@ -1,12 +1,12 @@
 import React from 'react';
 import { Trophy, Award, Flame, Star, CheckCircle, Clock, Code, ShieldCheck } from 'lucide-react';
 
-export default function LeaderboardTab({ completedDays, studyHours, completedDsa }) {
+export default function LeaderboardTab({ currentUser, completedDays, studyHours, completedDsa }) {
   // Demo Leaderboard entries featuring user + top community learners
   const communityUsers = [
     {
       rank: 1,
-      name: "Satyam Shiv (You)",
+      name: currentUser ? `${currentUser.username} (You)` : "Satyam Shiv (You)",
       isUser: true,
       daysCompleted: completedDays.length,
       studyHours: studyHours,
