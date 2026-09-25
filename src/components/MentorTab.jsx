@@ -19,7 +19,7 @@ export default function MentorTab({
           AI Mentor & Placement Coach
         </h2>
         <span className="text-[10px] text-emerald-500 font-semibold uppercase tracking-wider bg-emerald-900/30 px-2 py-0.5 rounded border border-emerald-800/50">
-          RAG + MCP Agent
+          AI Powered
         </span>
       </div>
 
