@@ -102,7 +102,13 @@ export default function App() {
           if (p.vivaScore) setVivaScore(p.vivaScore);
           if (p.projectMilestones) setProjectMilestones(p.projectMilestones);
           if (p.chatMessages && Array.isArray(p.chatMessages) && p.chatMessages.length > 0) {
-            setChatMessages(p.chatMessages);
+            const sanitizedMessages = p.chatMessages.map((m, idx) => {
+              if (idx === 0 && (m.text.includes("Node.js Backend") || m.text.includes("doesn't have real content"))) {
+                return { ...m, text: "Welcome to CodeMentor! I'm your AI Backend Engineering Mentor & Placement Coach. Ask me to explain any Java 17, Spring Boot 3.4, SQL, or System Design concept, quiz you on your 45-day curriculum, or review your code." };
+              }
+              return m;
+            });
+            setChatMessages(sanitizedMessages);
           }
         }
       } catch (err) {
