@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -30,13 +31,21 @@ public class SecurityConfig {
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
-            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin())) // For H2 console access
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
             .authorizeHttpRequests(auth -> auth
+                // --- PUBLIC endpoints (no JWT required) ---
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/api/users/**", "/api/health", "/h2-console/**").permitAll()
+                .requestMatchers("/api/users/login", "/api/users/register").permitAll()
+                .requestMatchers("/api/health", "/h2-console/**").permitAll()
+
+                // --- ADMIN-only endpoints ---
                 .requestMatchers(HttpMethod.POST, "/api/knowledge/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/knowledge/**").hasRole("ADMIN")
-                .requestMatchers("/api/**").permitAll()
+
+                // --- AUTHENTICATED endpoints (JWT required) ---
+                .requestMatchers("/api/**").authenticated()
+
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

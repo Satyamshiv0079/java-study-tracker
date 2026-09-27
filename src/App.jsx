@@ -28,9 +28,25 @@ export default function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
-  const [currentTab, setCurrentTab] = useState('landing');
+  // Protected tabs require authentication
+  const protectedTabs = ['dashboard', 'syllabus', 'coding', 'interview', 'project', 'analytics', 'leaderboard', 'career', 'mentor'];
+
+  const [currentTab, setCurrentTabRaw] = useState(() => {
+    const saved = localStorage.getItem('studyTrackerUser');
+    return saved ? 'dashboard' : 'landing';
+  });
+
+  // Guard: if user tries to navigate to a protected tab without auth, show login modal
+  const setCurrentTab = (tab) => {
+    if (protectedTabs.includes(tab) && !currentUser) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+    setCurrentTabRaw(tab);
+  };
+
   const [activeDay, setActiveDay] = useState(1);
-  const [completedDays, setCompletedDays] = useState([1]);
+  const [completedDays, setCompletedDays] = useState([]);
   const [completedDsa, setCompletedDsa] = useState([]);
   const [studyHours, setStudyHours] = useState(0);
   const [notes, setNotes] = useState({});
@@ -71,65 +87,59 @@ export default function App() {
   // --- Load persisted state from Java API and LocalStorage on mount ---
   useEffect(() => {
     async function loadData(retryCount = 0) {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 35000); // 35s timeout for Render cold starts
-
-      try {
-        // 1. Load Day Progress from real Java Backend (passing JWT Bearer token if logged in)
-        const headers = {};
-        if (currentUser && currentUser.token) {
-          headers['Authorization'] = `Bearer ${currentUser.token}`;
-        }
-        const endpoint = currentUser ? `${API_BASE}/api/progress/me` : `${API_BASE}/api/progress/1`;
-
-        const response = await fetch(endpoint, {
-          headers,
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-        if (response.ok) {
-          const progressList = await response.json();
-          const completedDaysList = progressList
-            .filter(p => p.completed)
-            .map(p => p.dayNumber);
-          setCompletedDays(completedDaysList);
-          setStorageError(''); // Clear error on successful sync!
-        }
-
-        // 2. Load other stats from LocalStorage
+      // Only fetch from backend if user is authenticated with a JWT token
+      if (!currentUser || !currentUser.token) {
+        // Load local-only data for demo mode
         const localData = localStorage.getItem('studyTrackerData');
         if (localData) {
           const p = JSON.parse(localData);
           if (p.completedDsa) setCompletedDsa(p.completedDsa);
           if (typeof p.studyHours === 'number') setStudyHours(p.studyHours);
-          if (p.notes) {
-            setNotes(p.notes);
-            setActiveNote(p.notes[1] || '');
-          }
+          if (p.notes) { setNotes(p.notes); setActiveNote(p.notes[1] || ''); }
           if (p.vivaScore) setVivaScore(p.vivaScore);
           if (p.projectMilestones) setProjectMilestones(p.projectMilestones);
-          if (p.chatMessages && Array.isArray(p.chatMessages) && p.chatMessages.length > 0) {
-            const sanitizedMessages = p.chatMessages.map((m, idx) => {
-              if (idx === 0 && (m.text.includes("Node.js Backend") || m.text.includes("doesn't have real content"))) {
-                return { ...m, text: "Welcome to CodeMentor! I'm your AI Backend Engineering Mentor & Placement Coach. Ask me to explain any Java 17, Spring Boot 3.4, SQL, or System Design concept, quiz you on your 45-day curriculum, or review your code." };
-              }
-              return m;
-            });
-            setChatMessages(sanitizedMessages);
-          }
         }
-      } catch (err) {
-        console.warn("Load attempt error:", err);
-        // Retry once if Render is warming up from sleep mode
-        if (retryCount < 1) {
-          setTimeout(() => loadData(retryCount + 1), 3000);
-          return;
+        setStorageReady(true);
+        return;
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 35000);
+
+      try {
+        // Authenticated fetch — backend determines user from JWT, not from URL
+        const response = await fetch(`${API_BASE}/api/progress/me`, {
+          headers: { 'Authorization': `Bearer ${currentUser.token}` },
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        if (response.ok) {
+          const progressList = await response.json();
+          setCompletedDays(progressList.filter(p => p.completed).map(p => p.dayNumber));
+          setStorageError('');
+        } else if (response.status === 401 || response.status === 403) {
+          // Token expired or invalid — force re-login
+          setCurrentUser(null);
+          localStorage.removeItem('studyTrackerUser');
+          setCurrentTabRaw('landing');
+          setIsAuthModalOpen(true);
         }
 
+        // Load supplementary data from localStorage (until P1 moves these to PostgreSQL)
         const localData = localStorage.getItem('studyTrackerData');
         if (localData) {
           const p = JSON.parse(localData);
-          if (p.completedDays) setCompletedDays(p.completedDays);
+          if (p.completedDsa) setCompletedDsa(p.completedDsa);
+          if (typeof p.studyHours === 'number') setStudyHours(p.studyHours);
+          if (p.notes) { setNotes(p.notes); setActiveNote(p.notes[1] || ''); }
+          if (p.vivaScore) setVivaScore(p.vivaScore);
+          if (p.projectMilestones) setProjectMilestones(p.projectMilestones);
+        }
+      } catch (err) {
+        console.warn("Load attempt error:", err);
+        if (retryCount < 1) {
+          setTimeout(() => loadData(retryCount + 1), 3000);
+          return;
         }
       } finally {
         setStorageReady(true);
@@ -137,10 +147,9 @@ export default function App() {
     }
     loadData();
 
-    // Keep-alive ping to Render every 10 minutes to prevent cold starts
+    // Keep-alive ping uses the public /api/health endpoint (no auth needed)
     const pingInterval = setInterval(() => {
-      const activeId = currentUser ? currentUser.id : 1;
-      fetch(`${API_BASE}/api/progress/${activeId}`).catch(() => {});
+      fetch(`${API_BASE}/api/health`).catch(() => {});
     }, 10 * 60 * 1000);
 
     return () => clearInterval(pingInterval);
@@ -252,19 +261,16 @@ export default function App() {
       isNowComplete ? [...completedDays, dayNum] : completedDays.filter((d) => d !== dayNum)
     );
     
-    // Call the real Java Spring Boot API (passing JWT Bearer token if logged in)
-    try {
-      const headers = {};
-      if (currentUser && currentUser.token) {
-        headers['Authorization'] = `Bearer ${currentUser.token}`;
+    // Only sync to backend if authenticated
+    if (currentUser && currentUser.token) {
+      try {
+        await fetch(`${API_BASE}/api/progress/me/${dayNum}`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${currentUser.token}` }
+        });
+      } catch (err) {
+        console.error("Failed to sync day to Java backend", err);
       }
-      const endpoint = currentUser ? `${API_BASE}/api/progress/me/${dayNum}` : `${API_BASE}/api/progress/1/${dayNum}`;
-      await fetch(endpoint, {
-        method: 'POST',
-        headers
-      });
-    } catch (err) {
-      console.error("Failed to sync day to Java backend", err);
     }
   }
 

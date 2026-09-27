@@ -19,55 +19,27 @@ public class DayProgressController {
 
     private final DayProgressService progressService;
 
+    /**
+     * GET /api/progress/me — returns the authenticated user's own progress.
+     * The userId comes from the JWT token, never from the request.
+     */
     @GetMapping("/me")
     public ResponseEntity<List<DayProgressDto>> getMyProgress(@AuthenticationPrincipal UserPrincipal principal) {
-        Long activeUserId = resolveUserId(principal, null);
-        List<DayProgressDto> dtos = progressService.getUserProgress(activeUserId).stream()
+        List<DayProgressDto> dtos = progressService.getUserProgress(principal.getId()).stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(dtos);
     }
 
+    /**
+     * POST /api/progress/me/{dayNumber} — toggles a day for the authenticated user.
+     */
     @PostMapping("/me/{dayNumber}")
     public ResponseEntity<DayProgressDto> toggleMyDayProgress(
             @AuthenticationPrincipal UserPrincipal principal,
             @PathVariable int dayNumber) {
-        Long activeUserId = resolveUserId(principal, null);
-        DayProgress progress = progressService.toggleDay(activeUserId, dayNumber);
+        DayProgress progress = progressService.toggleDay(principal.getId(), dayNumber);
         return ResponseEntity.ok(toDto(progress));
-    }
-
-    @GetMapping("/{userId}")
-    public ResponseEntity<List<DayProgressDto>> getUserProgress(
-            @AuthenticationPrincipal UserPrincipal principal,
-            @PathVariable Long userId) {
-        Long activeUserId = resolveUserId(principal, userId);
-        List<DayProgressDto> dtos = progressService.getUserProgress(activeUserId).stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
-    }
-
-    @PostMapping("/{userId}/{dayNumber}")
-    public ResponseEntity<DayProgressDto> toggleDayProgress(
-            @AuthenticationPrincipal UserPrincipal principal,
-            @PathVariable Long userId,
-            @PathVariable int dayNumber) {
-        Long activeUserId = resolveUserId(principal, userId);
-        DayProgress progress = progressService.toggleDay(activeUserId, dayNumber);
-        return ResponseEntity.ok(toDto(progress));
-    }
-
-    private Long resolveUserId(UserPrincipal principal, Long requestedUserId) {
-        if (principal != null) {
-            // User Isolation: Non-admin users can ONLY access their own resources!
-            if (requestedUserId != null && !requestedUserId.equals(principal.getId()) && !"ROLE_ADMIN".equals(principal.getRole())) {
-                throw new RuntimeException("Forbidden: You cannot access or modify another user's progress data");
-            }
-            return principal.getId();
-        }
-        // Fallback to requested userId for unauthenticated/demo mode
-        return requestedUserId != null ? requestedUserId : 1L;
     }
 
     private DayProgressDto toDto(DayProgress entity) {

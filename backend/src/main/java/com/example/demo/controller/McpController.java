@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.security.UserPrincipal;
 import com.example.demo.service.DayProgressService;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
@@ -38,24 +40,24 @@ public class McpController {
 
     @PostMapping("/execute")
     public ResponseEntity<Map<String, Object>> executeMcpTool(
-            @RequestParam Long userId,
+            @AuthenticationPrincipal UserPrincipal principal,
             @RequestParam String toolName) {
-        
+
         Map<String, Object> result = new HashMap<>();
-        var progressList = progressService.getUserProgress(userId);
+        var progressList = progressService.getUserProgress(principal.getId());
         long completedCount = progressList.stream().filter(p -> p.isCompleted()).count();
 
         if ("get_user_progress".equals(toolName)) {
-            result.put("userId", userId);
+            result.put("userId", principal.getId());
             result.put("completedDaysCount", completedCount);
             result.put("totalDays", 45);
             result.put("completionPercentage", Math.round((completedCount / 45.0) * 100));
         } else if ("get_curriculum_gaps".equals(toolName)) {
-            result.put("userId", userId);
+            result.put("userId", principal.getId());
             result.put("pendingDaysCount", 45 - completedCount);
             result.put("recommendedFocus", completedCount < 10 ? "Java Fundamentals & JVM Memory" : "Spring Boot & REST APIs");
         } else {
-            result.put("error", "Unknown MCP Tool: " + toolName);
+            result.put("error", "Unknown tool: " + toolName);
         }
 
         return ResponseEntity.ok(result);

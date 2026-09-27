@@ -12,17 +12,18 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    private static final String DEFAULT_SECRET = "codeMentorSuperSecretJwtKeyForSpringSecurity2026Base64VersionForPlacementPlatform!";
-    private static final long EXPIRATION_TIME = 86400000L; // 24 hours in ms
+    private static final long EXPIRATION_TIME = 86400000L; // 24 hours
 
     private final SecretKey key;
 
-    public JwtUtil(@Value("${jwt.secret:}") String jwtSecret) {
-        String secret = (jwtSecret != null && !jwtSecret.isBlank()) ? jwtSecret : DEFAULT_SECRET;
-        if (secret.getBytes(StandardCharsets.UTF_8).length < 32) {
-            secret = DEFAULT_SECRET;
+    public JwtUtil(@Value("${JWT_SECRET}") String jwtSecret) {
+        if (jwtSecret == null || jwtSecret.isBlank() || jwtSecret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalStateException(
+                "JWT_SECRET environment variable is missing or too short (minimum 32 bytes). " +
+                "Set it via: export JWT_SECRET=your-secret-here-at-least-32-chars"
+            );
         }
-        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
     public String generateToken(Long userId, String username, String role) {
