@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Header from './components/Header';
 import Navigation from './components/Navigation';
+import LandingTab from './components/LandingTab';
 import DashboardTab from './components/DashboardTab';
 import SyllabusTab from './components/SyllabusTab';
 import CodingTab from './components/CodingTab';
@@ -27,7 +28,7 @@ export default function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
-  const [currentTab, setCurrentTab] = useState('dashboard');
+  const [currentTab, setCurrentTab] = useState('landing');
   const [activeDay, setActiveDay] = useState(1);
   const [completedDays, setCompletedDays] = useState([1]);
   const [completedDsa, setCompletedDsa] = useState([]);
@@ -74,9 +75,15 @@ export default function App() {
       const timeoutId = setTimeout(() => controller.abort(), 35000); // 35s timeout for Render cold starts
 
       try {
-        // 1. Load Day Progress from real Java Backend
-        const userId = currentUser ? currentUser.id : 1;
-        const response = await fetch(`${API_BASE}/api/progress/${userId}`, {
+        // 1. Load Day Progress from real Java Backend (passing JWT Bearer token if logged in)
+        const headers = {};
+        if (currentUser && currentUser.token) {
+          headers['Authorization'] = `Bearer ${currentUser.token}`;
+        }
+        const endpoint = currentUser ? `${API_BASE}/api/progress/me` : `${API_BASE}/api/progress/1`;
+
+        const response = await fetch(endpoint, {
+          headers,
           signal: controller.signal
         });
         clearTimeout(timeoutId);
@@ -89,7 +96,7 @@ export default function App() {
           setStorageError(''); // Clear error on successful sync!
         }
 
-        // 2. Load other stats from LocalStorage (since Java backend only tracks days right now)
+        // 2. Load other stats from LocalStorage
         const localData = localStorage.getItem('studyTrackerData');
         if (localData) {
           const p = JSON.parse(localData);
@@ -119,7 +126,6 @@ export default function App() {
           return;
         }
 
-        // Fallback to local storage if Java backend times out or fails
         const localData = localStorage.getItem('studyTrackerData');
         if (localData) {
           const p = JSON.parse(localData);
@@ -246,11 +252,16 @@ export default function App() {
       isNowComplete ? [...completedDays, dayNum] : completedDays.filter((d) => d !== dayNum)
     );
     
-    // Call the real Java Spring Boot API!
+    // Call the real Java Spring Boot API (passing JWT Bearer token if logged in)
     try {
-      const userId = currentUser ? currentUser.id : 1;
-      await fetch(`${API_BASE}/api/progress/${userId}/${dayNum}`, {
-        method: 'POST'
+      const headers = {};
+      if (currentUser && currentUser.token) {
+        headers['Authorization'] = `Bearer ${currentUser.token}`;
+      }
+      const endpoint = currentUser ? `${API_BASE}/api/progress/me/${dayNum}` : `${API_BASE}/api/progress/1/${dayNum}`;
+      await fetch(endpoint, {
+        method: 'POST',
+        headers
       });
     } catch (err) {
       console.error("Failed to sync day to Java backend", err);
@@ -323,6 +334,14 @@ export default function App() {
       <Navigation currentTab={currentTab} setCurrentTab={setCurrentTab} />
 
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6 overflow-y-auto custom-scrollbar">
+        {currentTab === 'landing' && (
+          <LandingTab
+            onExploreDemo={() => setCurrentTab('dashboard')}
+            onOpenAuth={() => setIsAuthModalOpen(true)}
+            currentUser={currentUser}
+          />
+        )}
+
         {currentTab === 'dashboard' && (
           <DashboardTab
             storageError={storageError}
@@ -423,7 +442,7 @@ export default function App() {
           setCurrentUser(user);
           localStorage.setItem('studyTrackerUser', JSON.stringify(user));
           setIsAuthModalOpen(false);
-          setCurrentTab('dashboard'); // Redirect directly to Home / Dashboard!
+          setCurrentTab('dashboard'); // Redirect directly to authenticated Dashboard!
         }}
       />
 

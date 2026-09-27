@@ -2,6 +2,7 @@ import React from 'react';
 
 export default function Navigation({ currentTab, setCurrentTab }) {
   const tabs = [
+    ['landing', '🏠 Platform Overview'],
     ['dashboard', 'Dashboard'],
     ['syllabus', 'Syllabus & Notes'],
     ['coding', 'DSA Practice'],
