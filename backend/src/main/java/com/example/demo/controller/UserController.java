@@ -1,11 +1,12 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.AuthResponse;
+import com.example.demo.dto.LoginRequest;
+import com.example.demo.dto.RegisterRequest;
 import com.example.demo.model.User;
+import com.example.demo.security.JwtUtil;
 import com.example.demo.service.UserService;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,42 +17,37 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final JwtUtil jwtUtil;
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody UserDto userDto) {
-        try {
-            User newUser = userService.registerUser(userDto.getUsername(), userDto.getEmail(), userDto.getPassword());
-            return ResponseEntity.ok(UserResponse.builder()
-                    .id(newUser.getId())
-                    .username(newUser.getUsername())
-                    .email(newUser.getEmail())
-                    .build());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<AuthResponse> registerUser(@Valid @RequestBody RegisterRequest request) {
+        User newUser = userService.registerUser(request.getUsername(), request.getEmail(), request.getPassword());
+        String token = jwtUtil.generateToken(newUser.getId(), newUser.getUsername(), newUser.getRole());
+
+        AuthResponse response = AuthResponse.builder()
+                .id(newUser.getId())
+                .username(newUser.getUsername())
+                .email(newUser.getEmail())
+                .role(newUser.getRole())
+                .token(token)
+                .build();
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestBody UserDto userDto) {
-        try {
-            User user = userService.loginUser(userDto.getUsername(), userDto.getPassword());
-            return ResponseEntity.ok(UserResponse.builder()
-                    .id(user.getId())
-                    .username(user.getUsername())
-                    .email(user.getEmail())
-                    .build());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
+    public ResponseEntity<AuthResponse> loginUser(@Valid @RequestBody LoginRequest request) {
+        User user = userService.loginUser(request.getUsername(), request.getPassword());
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
 
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Builder
-    public static class UserResponse {
-        private Long id;
-        private String username;
-        private String email;
+        AuthResponse response = AuthResponse.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .token(token)
+                .build();
+
+        return ResponseEntity.ok(response);
     }
 }

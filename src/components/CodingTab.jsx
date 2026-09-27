@@ -178,7 +178,7 @@ Evaluate and return ONLY a JSON object:
           <div className="flex items-center gap-2">
             <Cpu className="w-4 h-4 text-emerald-500" />
             <h3 className="text-xs font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-              Live Java 17 Compiler Engine
+              Live JVM Execution Engine (Piston Java Runtime)
             </h3>
           </div>
 

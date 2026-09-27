@@ -212,12 +212,18 @@ export default function App() {
     setIsReviewing(true);
     setReviewOutput('');
     try {
-      setTimeout(() => {
-        setReviewOutput("Mocked Review: Your logic looks mostly correct. \nTime Complexity: O(N) \nSpace Complexity: O(1).\nConsider adding edge case checks for empty arrays.");
-        setIsReviewing(false);
-      }, 1500);
+      const apiUrl = import.meta.env.PROD ? '/api/career' : 'http://localhost:3001/api/career';
+      const prompt = `Review this Java code:\n\`\`\`java\n${sandboxCode}\n\`\`\``;
+      const res = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "code_review", text: prompt, targetRole: "Java Engineer" })
+      });
+      const data = await res.json();
+      setReviewOutput(data.feedback ? `Time: ${data.timeComplexity} | Space: ${data.spaceComplexity}\n${data.feedback}` : JSON.stringify(data, null, 2));
     } catch (err) {
-      setReviewOutput(`Could not reach the review service: ${err.message}`);
+      setReviewOutput(`Review service unavailable: ${err.message}`);
+    } finally {
       setIsReviewing(false);
     }
   }

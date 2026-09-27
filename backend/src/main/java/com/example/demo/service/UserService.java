@@ -46,8 +46,8 @@ public class UserService {
         User user = userRepository.findByUsername(username.trim())
                 .orElseThrow(() -> new RuntimeException("Invalid username or password"));
 
-        // BCrypt password matching with fallback for legacy plaintext passwords
-        boolean isMatch = passwordEncoder.matches(rawPassword, user.getPassword()) || rawPassword.equals(user.getPassword());
+        // Strict BCrypt password matching
+        boolean isMatch = passwordEncoder.matches(rawPassword, user.getPassword());
 
         if (!isMatch) {
             throw new RuntimeException("Invalid username or password");
