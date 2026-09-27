@@ -1,276 +1,460 @@
-# 🚀 CodeMentor — Full-Stack 45-Day Java & Spring Boot Placement Platform
+# 🚀 CodeMentor — 45-Day Java & Spring Boot Placement Platform
 
-> An AI-powered Java backend learning platform combining a structured 45-day curriculum, live JVM execution, interactive AI mock vivas, ATS resume parsing, and context-grounded AI mentoring.
+A full-stack learning and placement-preparation platform designed to help developers build Java, Spring Boot, DSA, backend, AI, and interview skills through a structured 45-day curriculum.
 
-[![Frontend](https://img.shields.io/badge/Frontend-Vercel-black?style=for-the-badge&logo=vercel)](https://java-study-tracker-omega.vercel.app/)
-[![Backend](https://img.shields.io/badge/Backend-Render-46E3B7?style=for-the-badge&logo=render)](https://java-study-tracker.onrender.com/api/progress/1)
-[![Java](https://img.shields.io/badge/Java-17-ED8B00?style=for-the-badge&logo=openjdk)](https://openjdk.org/)
-[![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.4-6DB33F?style=for-the-badge&logo=springboot)](https://spring.io/projects/spring-boot)
-[![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react)](https://react.dev/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon_Cloud-4169E1?style=for-the-badge&logo=postgresql)](https://neon.tech/)
-[![CI Build](https://github.com/Satyamshiv0079/java-study-tracker/actions/workflows/build.yml/badge.svg)](https://github.com/Satyamshiv0079/java-study-tracker/actions)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
+CodeMentor combines a React frontend, Spring Boot backend, PostgreSQL, AI-powered learning tools, DSA practice, mock interviews, career analysis, and learning analytics into one platform.
+
+The project is being developed with a focus on real backend engineering, security, persistence, testing, and production-oriented architecture rather than simply adding UI features.
 
 ---
 
-## 🌐 Live Demo
+## 📌 Project Status
 
-| Service | URL |
-|:---|:---|
-| **Frontend Web Application (React + Vite)** | https://java-study-tracker-omega.vercel.app/ |
-| **Backend REST API (Spring Boot 3.4)** | https://java-study-tracker.onrender.com/api/progress/1 |
-| **GitHub Repository** | https://github.com/Satyamshiv0079/java-study-tracker |
+**Current status**: Active development
 
-> ⚠️ The Spring Boot REST API is hosted on Render's **free tier** and will sleep after inactivity. Initial requests may take ~25-35 seconds while the container boots. Automatic client retries and keep-alive pings are built-in.
+The application currently has a functional full-stack foundation with the following areas implemented:
+- 45-day Java/Spring Boot curriculum
+- Learning dashboard
+- Day-wise progress tracking
+- DSA practice environment
+- Java code execution integration
+- AI mentor
+- AI code review
+- Mock technical/viva interviews
+- Resume/ATS analysis
+- LinkedIn optimization
+- GitHub analysis
+- Career analysis
+- Knowledge/RAG foundation
+- Analytics dashboard
+- Capstone project tracking
+- PostgreSQL/H2 persistence foundation
+- Spring Boot REST APIs
+- React + Vite frontend
+- Docker configuration
+- CI/CD foundation
+
+Several production-hardening features are intentionally listed under Roadmap because they still require deeper implementation.
 
 ---
 
-## 📌 Overview
+## 🎯 Goals
 
-**CodeMentor** is a full-stack web application and placement preparation suite designed around a structured 45-day Java & Spring Boot backend engineering curriculum.
+CodeMentor is designed around five primary goals:
+1. **Learn Java systematically**
+2. **Practice DSA consistently**
+3. **Build real backend engineering skills**
+4. **Use AI as a learning assistant**
+5. **Track measurable placement preparation progress**
 
-The platform provides a complete ecosystem for computer science students and job aspirants:
-- 📚 **Structured 45-Day Roadmap**: Java Core → OOP → Collections → Concurrency → JVM Internals → SQL → Spring Boot → Spring Security → Microservices → System Design.
-- 💻 **Live Java 17 Sandbox**: Real-time code execution powered by the Piston Live JVM Engine.
-- 🤖 **AI Code Review**: Automated $O(N)$ time/space complexity analysis and optimization suggestions via Google Gemini 2.5 Flash.
-- 🎙️ **AI Mock Vivas**: Interactive verbal technical interviews with 1-10 performance scoring, keyword breakdown, and targeted follow-up questions.
-- 🤖 **Grounded AI Mentor**: Context-aware study assistant that combines active user progress telemetry with curriculum topic knowledge.
-- 🚀 **Capstone Project Tracker**: Interactive milestone checklist for building enterprise Spring Boot REST APIs.
-- 💼 **AI Career Suite**: PDF resume parsing with ATS compatibility scoring, bullet rewrites, and recruiter-focused LinkedIn optimizations.
-- 📊 **Learning Analytics & Benchmarks**: Real-time progress metrics and transparent peer benchmark comparisons.
-- 🔐 **Spring Boot Security & Persistence**: BCrypt password encryption, Spring Security 6 CORS policies, and Neon PostgreSQL Cloud storage.
+Instead of creating separate applications for studying, coding practice, interview preparation, and career preparation, CodeMentor brings these workflows into one platform.
 
 ---
 
-## 🏗️ System Architecture
+## 🏗️ Architecture
 
-```mermaid
-flowchart TB
-    subgraph Client ["Client Layer"]
-        ReactApp["React 18 + Vite Frontend (Vercel)"]
-    end
-
-    subgraph Backend ["Backend & Data Layer"]
-        SpringBoot["Spring Boot 3.4 REST API (Render Docker)"]
-        SpringSec["Spring Security 6 (BCrypt & CORS)"]
-        Postgres[("Neon PostgreSQL Cloud DB")]
-    end
-
-    subgraph Serverless ["Serverless AI Proxy Layer (Vercel API)"]
-        ChatAPI["AI Chat Proxy (/api/chat.js)"]
-        CareerAPI["Career & ATS Engine (/api/career.js)"]
-        EmbedAPI["Vector Embeddings Engine (/api/rag.js)"]
-        ToolAPI["Telemetry & Tools (/api/mcp.js, /api/github-mcp.js)"]
-    end
-
-    subgraph External ["External Services"]
-        Gemini["Google Gemini 2.5 Flash & text-embedding-004"]
-        Piston["Piston Live JVM Execution Engine"]
-        GitHubAPI["GitHub REST API"]
-    end
-
-    ReactApp -->|REST / HTTP| SpringBoot
-    SpringBoot --> SpringSec
-    SpringSec --> Postgres
-
-    ReactApp -->|AI Requests| ChatAPI
-    ReactApp -->|Resume & Viva| CareerAPI
-    ReactApp -->|Live Compilation| Piston
-
-    ChatAPI --> ToolAPI
-    ChatAPI --> EmbedAPI
-    ChatAPI --> Gemini
-    CareerAPI --> Gemini
-    ToolAPI -->|Repo Activity| GitHubAPI
 ```
-
----
-
-## 🧠 AI Integration & System Prompt Grounding
-
-CodeMentor orchestrates AI features securely via Vercel serverless proxy handlers, keeping API keys protected from client-side exposure.
-
-```mermaid
-flowchart LR
-    subgraph Input ["User Request"]
-        Query["User Prompt / Code / Resume"]
-        State["User Progress & Telemetry"]
-    end
-
-    subgraph Proxy ["Serverless AI Handler"]
-        Format["System Prompt Synthesizer"]
-        TopicBase["Curriculum Topic Base"]
-    end
-
-    subgraph Model ["LLM Engine"]
-        GeminiFlash["Google Gemini 2.5 Flash"]
-    end
-
-    Query --> Format
-    State --> Format
-    TopicBase --> Format
-    Format -->|Grounded System Context| GeminiFlash
-    GeminiFlash -->|Structured JSON / Text Response| ClientResponse["Interactive UI Output"]
+                         ┌─────────────────────┐
+                         │      React UI       │
+                         │     Vite + CSS      │
+                         └──────────┬──────────┘
+                                    │
+                                    ▼
+                         ┌─────────────────────┐
+                         │   REST API Layer    │
+                         │     Spring Boot     │
+                         └──────────┬──────────┘
+                                    │
+              ┌─────────────────────┼─────────────────────┐
+              │                     │                     │
+              ▼                     ▼                     ▼
+      ┌──────────────┐      ┌──────────────┐      ┌──────────────┐
+      │ PostgreSQL   │      │ Spring       │      │ AI Services  │
+      │ / H2         │      │ Security     │      │ Gemini / APIs │
+      └──────────────┘      └──────────────┘      └──────────────┘
+              │                     │                     │
+              ▼                     ▼                     ▼
+      ┌──────────────┐      ┌──────────────┐      ┌──────────────┐
+      │ User Data    │      │ Auth / RBAC  │      │ AI Mentor    │
+      │ Progress     │      │ JWT          │      │ RAG          │
+      │ Analytics    │      │              │      │ Career Tools │
+      └──────────────┘      └──────────────┘      └──────────────┘
 ```
-
-1. **Context Grounding**: The AI handler injects active user progress (completed days, solved DSA problems, study hours) and relevant curriculum topic references directly into the Gemini model system instructions.
-2. **Code Evaluation**: Submits code snippets alongside runtime output from the Piston JVM engine to obtain precise efficiency analysis.
-3. **Structured Outputs**: Formats resume feedback, viva scores, and code reviews into predictable JSON schemas for rich UI rendering.
 
 ---
 
 ## 🧰 Technology Stack
 
-| Layer | Technology | Description |
-| :--- | :--- | :--- |
-| **Frontend** | React 18, Vite | Single-page application with modular tab navigation |
-| **Styling & UI** | Tailwind CSS, Lucide Icons, Recharts | Responsive layout, theme toggle, dynamic analytics charts |
-| **Backend Framework** | Java 17, Spring Boot 3.4 | RESTful web services, Spring Data JPA, Lombok, Maven |
-| **Security** | Spring Security 6, BCrypt | Secure password hashing, wild card CORS origin filtering |
-| **Database** | PostgreSQL 15 (Neon Cloud DB) | Serverless cloud relational database |
-| **AI LLM** | Google Gemini 2.5 Flash (`v1beta`) | Core LLM for code reviews, mock vivas, and AI mentoring |
-| **Embeddings** | Gemini `text-embedding-004` | 768-dimensional vector embedding generation |
-| **Code Execution** | Piston Code Execution Engine API | Remote execution container for compiling & running Java 17 |
-| **Containerization** | Docker & Dockerfile | Multi-stage Docker build for backend deployment |
-| **CI/CD** | GitHub Actions | Automated build, test compile, and caching workflow |
-| **Hosting** | Vercel & Render | Vercel (Frontend & Serverless API), Render (Backend Container) |
+### Frontend
+- React 18
+- Vite
+- JavaScript
+- Tailwind CSS
+- Responsive UI
+- REST API integration
+
+### Backend
+- Java 17
+- Spring Boot 3.4
+- Spring Web
+- Spring Data JPA
+- Spring Security 6
+- Jakarta Validation
+- REST APIs
+
+### Database
+- PostgreSQL (Neon Cloud)
+- H2 for local development/testing
+- Flyway (planned production migration layer)
+
+### AI & LLM
+- Google Gemini 2.5 Flash
+- AI mentor & placement coach
+- AI code review
+- Resume & ATS analysis
+- Mock viva generation
+- Knowledge-grounded responses
+
+### Developer Tools & DevOps
+- Docker & Dockerfile
+- GitHub Actions CI/CD (`.github/workflows/build.yml`)
+- Git
+- Maven
+- Swagger / OpenAPI (planned)
+
+### External Services
+- GitHub API
+- Piston code execution API (Java 17 runtime)
+- Gemini API (`v1beta`)
 
 ---
 
-## 🎯 Core Features
+## ✨ Core Features
 
-### 1. 📊 Learning Dashboard
-- 45-day interactive progress grid with completed/pending indicators.
-- Live telemetry: study hours logged, streak counters, and readiness heuristics.
-- Automatic backend sync with offline local storage fallback.
+### 📚 45-Day Learning Curriculum
+A structured learning roadmap covering:
 
-### 2. 📚 Structured 45-Day Curriculum
-- Deeply technical 45-day syllabus covering Core Java, Collections, Multithreading, JVM Internals, SQL, Spring Boot, Spring Security, Docker, Microservices, and System Design.
-- Includes clear learning objectives, theoretical deep-dives, and curated tutorial references.
+```
+Java → OOP → Collections → Exception Handling → Multithreading → SQL → Spring → Spring Boot → REST APIs → JPA/Hibernate → Security → Backend Development → Projects → Interview Prep
+```
 
-### 3. 💻 Live Java DSA Sandbox & AI Code Review
-- Live Java 17 compilation and execution via Piston API with stdout, stderr, and execution status.
-- Instant AI Code Review providing $O(N)$ time & space complexity, edge-case analysis, and refactoring tips.
+Each day contains learning objectives, resources, tasks, and progress tracking.
 
-### 4. 🎙️ AI Technical Mock Interviewer (Vivas)
-- Interactive verbal technical interview simulator.
-- Evaluates responses across Java, Spring, SQL, and System Design with 1-10 scores, missing keyword analysis, and targeted follow-up questions.
+### 📊 Learning Dashboard
+The dashboard provides a central view of preparation progress tracking:
+- Completed days
+- Learning progress
+- DSA activity
+- Study sessions
+- Interview preparation
+- Project progress
+- Learning streaks
+- Performance metrics
 
-### 5. 🤖 Grounded AI Mentor & Placement Coach
-- Context-aware study assistant grounded in curriculum topic knowledge and live user progress.
-- Explains complex backend concepts, clarifies daily syllabus topics, and suggests personalized next steps.
+The long-term goal is to make these metrics fully database-backed and available across devices.
 
-### 6. 🚀 Capstone Project Tracker
-- 8-phase interactive checklist guiding learners through building a production-ready Spring Boot REST API project.
+### 💻 DSA Practice
+CodeMentor includes a coding environment designed for Java practice:
+- Java coding editor
+- Live code execution via Piston JVM engine
+- Output display & stderr diagnostics
+- Compilation/runtime feedback
+- AI-assisted $O(N)$ code review
+- Problem tracking
 
-### 7. 📈 Learning Analytics & Insights
-- Interactive Recharts visualization displaying study hour trends, day completion velocity, and topic readiness.
+The execution layer uses an external sandbox service rather than executing arbitrary Java code directly inside the Spring Boot server.
 
-### 8. 🏆 Placement Community Benchmarks
-- Learner leaderboard comparing personal progress against standard placement target benchmarks.
-- Transparently labeled as community demo benchmarks for real-world peer evaluation.
+### 🤖 AI Mentor
+The AI mentor acts as a learning assistant rather than replacing the learning process. It helps with:
+- Java concepts
+- Spring Boot architecture
+- DSA explanations
+- Debugging assistance
+- Interview preparation
+- Project questions
+- Learning guidance
 
-### 9. 💼 AI Career Suite
-- **ATS Resume Analyzer**: PDF upload parser providing uninflated compatibility scores (0-100%), bullet point rewrites, and skill gap identification.
-- **LinkedIn Optimizer**: Recruiter-focused headline suggestions and cold outreach connection templates.
+Interaction flow:
+```
+User Question → Context Detection → Relevant Knowledge → AI Model → Explanation
+```
+
+### 🧠 Knowledge & RAG
+The project contains a knowledge-grounding foundation for providing AI responses based on the CodeMentor curriculum.
+
+Target architecture:
+```
+Learning Documents → Document Chunking → Embeddings → Vector Database → Similarity Search → Relevant Context → Gemini → Grounded Response
+```
+The current implementation is still being evolved toward a complete vector-search architecture using PostgreSQL/pgvector.
+
+### 🎤 AI Mock Interviews
+The platform can generate technical interview questions based on the learner's preparation across Java, OOP, DSA, SQL, Spring Boot, REST APIs, and System Design.
+
+Features:
+- Technical questions
+- User answers
+- AI feedback & missing keywords
+- Performance scores (1-10)
+- Improvement suggestions
+
+### 📄 Resume & ATS Analysis
+The career module provides AI-assisted resume analysis evaluating:
+- Resume structure
+- Technical keywords
+- Job-description alignment
+- Skills & project descriptions
+- Achievement statements
+- ATS compatibility scoring
+
+### 💼 Career Tools
+The platform includes career-oriented utilities:
+- Resume analysis
+- ATS optimization
+- LinkedIn optimization
+- Job-description analysis
+- GitHub profile analysis
+- Skill-gap analysis
+
+### 🐙 GitHub Analysis
+The GitHub integration analyzes publicly available development activity:
+- Repository count
+- Primary programming languages
+- Commit activity & consistency
+- Repository distribution
+
+### 📈 Analytics
+The analytics layer tracks real learning activity:
+- **Study Time**: Daily, Weekly, Monthly trends
+- **DSA**: Problems Solved, Success Rate, Topic Performance
+- **Interview**: Attempts, Scores, Improvement
+- **Curriculum**: Completed Days, Completion Rate, Learning Streak
 
 ---
 
-## 🚧 Feature Roadmap & Completion Status
+## 🔐 Security Architecture
 
-- [x] **Phase 1 — Foundation**: 45-day curriculum, DSA sandbox, AI code review, Spring Security authentication, PostgreSQL persistence, and Docker setup.
-- [x] **Phase 2 — AI Context Grounding**: Serverless Gemini integration (`/api/chat.js`), prompt context augmentation, and vector embedding support (`text-embedding-004`).
-- [x] **Phase 3 — Serverless Telemetry Tools**: Modular serverless API tools (`/api/mcp.js`) and Spring Boot `UserController` progress syncing.
-- [x] **Phase 4 — Career & Resume Suite**: PDF parsing, ATS scoring engine (`/api/career.js`), and interactive mock viva simulator.
-- [x] **Phase 5 — Developer Activity Correlation**: GitHub commit activity analysis and repo language tracking (`/api/github-mcp.js`).
-- [x] **Phase 6 — Production Hardening**: CORS wildcard policies, 35s cold-start timeouts, keep-alive pings, and GitHub Actions CI validation.
+Security is an active development area.
+
+Target authentication architecture:
+```
+Login → Credential Validation → Spring Security → JWT / Secure Session → Authenticated Request → Authorization → Controller
+```
+
+Planned/ongoing security improvements:
+- Spring Security 6
+- Secure authentication & BCrypt password hashing
+- JWT/session-based authentication
+- Role-based access control (RBAC)
+- Protected REST endpoints
+- Request validation & rate limiting
+- Secure CORS configuration
 
 ---
 
-## 📸 Application Screenshots & Feature Walkthrough
+## 🗄️ Database Design
 
-<div align="center">
-  <h3>1. 📊 Learning Dashboard</h3>
-  <img src="./docs/01_Dashboard.png" alt="Dashboard View" width="850"/>
-  <br/><em>Dashboard — Real-time 45-day course progress grid, study hours logged, and placement readiness score</em>
-</div>
+The database architecture is being expanded from basic user/progress persistence toward a complete learning data model.
 
-<br/><hr/><br/>
+Target model:
+```
+User
+ ├── DayProgress
+ ├── DsaSubmission
+ ├── StudySession
+ ├── Note
+ ├── VivaAttempt
+ ├── ProjectMilestone
+ ├── ChatSession
+ └── CareerAnalysis
+```
 
-<div align="center">
-  <h3>2. 📚 Syllabus & Notes</h3>
-  <img src="./docs/02_Syllabus.png" alt="Syllabus & Notes View" width="850"/>
-  <br/><em>Syllabus & Notes — Daily curated lessons with objectives, theory, and personal study notes editor</em>
-</div>
+Example schema:
+```sql
+users (id, username, email, password_hash, role, created_at)
+day_progress (id, user_id, day_number, completed, completed_at)
+dsa_submissions (id, user_id, problem_id, language, code, status, submitted_at)
+```
 
-<br/><hr/><br/>
+---
 
-<div align="center">
-  <h3>3. 💻 Live Java DSA Sandbox & AI Code Review</h3>
-  <img src="./docs/03_DSA_Practice.png" alt="DSA Practice View" width="850"/>
-  <br/><em>DSA Practice Sandbox — 45 LeetCode challenges with live JVM execution & instant AI Code Review</em>
-</div>
+## 🧱 Backend Architecture
 
-<br/><hr/><br/>
+The backend follows a layered Spring Boot architecture:
+```
+Controller → Service → Repository → Database
+```
+Supporting layers: DTO, Mapper, Validation, Security, Exception Handler, Configuration, and Integration Services.
 
-<div align="center">
-  <h3>4. 🎙️ AI Technical Mock Vivas</h3>
-  <img src="./docs/04_Mock_Vivas.png" alt="Mock Vivas View" width="850"/>
-  <br/><em>AI Interview Simulator — Interactive verbal Q&A with 1-10 scoring, missing keywords, and follow-up questions</em>
-</div>
+---
 
-<br/><hr/><br/>
+## 🧪 Testing Strategy
 
-<div align="center">
-  <h3>5. 🚀 Capstone Project Tracker</h3>
-  <img src="./docs/05_Project_Tracker.png" alt="Project Tracker View" width="850"/>
-  <br/><em>Project Tracker — Interactive milestone checklist for building production Spring Boot REST APIs</em>
-</div>
+Target testing structure:
+- **Unit Tests**: Services, Business Rules, Utilities
+- **Integration Tests**: REST APIs, Database, Authentication
+- **Security Tests**: Unauthorized access, User isolation, Role permissions
 
-<br/><hr/><br/>
+---
 
-<div align="center">
-  <h3>6. 📈 Study Analytics & Insights</h3>
-  <img src="./docs/06_Analytics.png" alt="Analytics View" width="850"/>
-  <br/><em>Analytics — Recharts trend graphs for study sessions and category readiness metrics</em>
-</div>
+## 🚀 Production Hardening Roadmap
 
-<br/><hr/><br/>
+### 🔴 High Priority
+- Implement JWT/secure session authentication
+- Protect all private REST endpoints
+- Implement user-resource authorization
+- Remove plaintext-password fallback
+- Remove hardcoded/mock implementations
+- Move important frontend state to PostgreSQL
+- Add comprehensive backend tests
+- Add global exception handling & DTO validation
 
-<div align="center">
-  <h3>7. 🏆 Placement Community Benchmarks</h3>
-  <img src="./docs/07_Leaderboard.png" alt="Leaderboard View" width="850"/>
-  <br/><em>Community Benchmarks — Learner rankings compared against target placement standards (with transparent Demo Data benchmarks)</em>
-</div>
+### 🟠 Medium Priority
+- Add Flyway database migrations
+- Implement PostgreSQL/pgvector RAG
+- Add Swagger/OpenAPI documentation
+- Add API rate limiting & token controls
+- Add health checks & Spring Boot Actuator
+- Improve Docker production configuration
 
-<br/><hr/><br/>
+### 🟢 Feature Completion
+- Persist DSA submissions & study sessions
+- Persist interview attempts
+- Build database-backed leaderboard
+- Build real analytics aggregation
 
-<div align="center">
-  <h3>8. 💼 AI Career & Placement Suite</h3>
-  <img src="./docs/08_Career_Hub.png" alt="Career Hub View" width="850"/>
-  <br/><em>Career Hub — Drag & drop PDF resume ATS compatibility scoring, bullet upgrades, and LinkedIn optimizer</em>
-</div>
+---
 
-<br/><hr/><br/>
+## 🛑 What Will Not Be Added Just for Feature Count
 
-<div align="center">
-  <h3>9. 🤖 AI Mentor Agent</h3>
-  <img src="./docs/09_AI_Mentor.png" alt="AI Mentor View" width="850"/>
-  <br/><em>AI Mentor — Context-grounded learning assistant combining curriculum topic knowledge and active user progress</em>
-</div>
+The project intentionally prioritizes depth over feature quantity. Planned development avoids adding:
+- Unnecessary AI chatbots or social feeds
+- UI-only notification systems or decorative animations
+- Payment systems without a real use case
+- Unnecessary microservices without architectural need
+
+The goal is to make existing functionality secure, persistent, testable, scalable, and defensible in technical interviews.
+
+---
+
+## 🔍 Known Limitations
+
+The current version should not be considered fully production-ready. Known areas being improved:
+- Authentication/authorization hardening
+- Complete PostgreSQL persistence
+- Database migrations & testing coverage
+- Vector retrieval refinement
+- Real leaderboard data consolidation
+
+---
+
+## 🧹 Implementation Consistency Checklist
+
+- README Spring Boot version matches `pom.xml` (3.4)
+- README React version matches `package.json` (18)
+- UI Java version matches actual execution runtime (Java 17)
+- Database documentation matches active Spring profiles
+- AI Code Review contains no mock fallback
+- Production claims are backed by implementation
+
+---
+
+## 🛠️ Recommended Engineering Order
+
+1. JWT + Spring Security
+2. User-resource authorization
+3. PostgreSQL persistence
+4. DTO + validation + exception handling
+5. Unit + integration + security tests
+6. Remove mock/hardcoded implementations
+7. Flyway migrations
+8. Real pgvector RAG
+9. Swagger + rate limiting
+10. Production hardening
+
+---
+
+## 📁 Recommended GitHub Structure
+
+```
+java-study-tracker/
+│
+├── src/                      # React Frontend Source
+├── api/                      # Serverless AI & Integration Handlers
+├── backend/                  # Spring Boot 3.4 REST API
+│   └── src/main/java/com/example/demo/
+├── docs/                     # Screenshot Assets & Documentation
+├── Dockerfile                # Backend Production Containerization
+├── docker-compose.yml        # Docker Multi-Container Compose
+└── README.md                 # System Architecture & Guide
+```
+
+---
+
+## ⚙️ Local Development
+
+### Prerequisites
+- Java 17+
+- Node.js 20+
+- Maven
+- PostgreSQL / H2
+- Git
+
+### Clone
+```bash
+git clone https://github.com/Satyamshiv0079/java-study-tracker.git
+cd java-study-tracker
+```
+
+### Start Backend
+```bash
+cd backend
+mvn spring-boot:run
+# Backend runs at: http://localhost:8080
+```
+
+### Start Frontend
+```bash
+npm install
+npm run dev
+# Frontend runs at: http://localhost:5173
+```
+
+---
+
+## 🔑 Environment Variables
+
+```env
+DATABASE_URL=
+DATABASE_USERNAME=
+DATABASE_PASSWORD=
+
+GEMINI_API_KEY=
+GITHUB_TOKEN=
+JWT_SECRET=
+```
+
+---
+
+## 🧠 Engineering Principles
+
+1. **Build before adding features**: Hardening existing modules over introducing raw feature count.
+2. **Backend is the source of truth**: Persisting data server-side rather than relying strictly on browser state.
+3. **Security by design**: Authentication, authorization, and validation built into API design.
+4. **AI assists learning**: Providing structured feedback rather than raw answer generation.
+5. **Measurable progress**: Telemetry tracking growth over time.
 
 ---
 
 ## 👨‍💻 Author
 
 **Satyam Shiv**  
-*Backend-focused Software Engineer \| Java \| Spring Boot \| Python \| AI*
-
-- **GitHub:** [Satyamshiv0079](https://github.com/Satyamshiv0079)
-- **LinkedIn:** [Satyam Shiv](https://www.linkedin.com/in/satyamshiv0079/)
+*Computer Science & Engineering*  
+- **GitHub**: [Satyamshiv0079](https://github.com/Satyamshiv0079)  
+- **LinkedIn**: [Satyam Shiv](https://www.linkedin.com/in/satyamshiv0079/)
 
 ---
 
-## 📜 License
+## ⭐ Project Philosophy
 
-This project is licensed under the [MIT License](LICENSE).
+> *Don't build a project that only looks impressive. Build one that can survive an engineer's questions.*
