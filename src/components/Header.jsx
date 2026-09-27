@@ -24,9 +24,9 @@ export default function Header({
         </div>
         <div>
           <h1 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300">
-            45-Day Java Study Tracker
+            CodeMentor
           </h1>
-          <p className="text-xs text-indigo-600 dark:text-indigo-400 font-mono">Backend & Full-Stack Prep</p>
+          <p className="text-xs text-indigo-600 dark:text-indigo-400 font-mono">45-Day Java & Backend Prep</p>
         </div>
       </div>
 
