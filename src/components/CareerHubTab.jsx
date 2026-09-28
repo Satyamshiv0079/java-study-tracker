@@ -117,29 +117,85 @@ Project Developer - Java Study Tracker (2026)
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 text-white rounded-2xl p-6 shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 -mt-4 -mr-4 w-40 h-40 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-6 max-w-6xl mx-auto">
+      {/* Backend Engineer Readiness Card (Prompt #17 requirement) */}
+      <div className="bg-dark-surface border border-dark-border rounded-2xl p-6 sm:p-7 shadow-sm space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-dark-border pb-4">
           <div>
-            <div className="flex items-center gap-2 text-indigo-300 font-semibold text-xs tracking-wider uppercase mb-1">
-              <Sparkles className="w-4 h-4 text-indigo-400" />
-              AI Career & Placement Suite
-            </div>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-white">
-              Resume PDF & LinkedIn URL Analyzer
-            </h1>
-            <p className="text-indigo-200 text-sm mt-1 max-w-2xl">
-              Upload your Resume PDF, paste profile text, or provide URLs for brutally honest ATS scoring, missing keywords, and bullet point upgrades tailored for Java Backend roles.
+            <span className="text-xs font-mono font-bold text-brand-400 uppercase tracking-wider">
+              CAREER & PLACEMENT BENCHMARK
+            </span>
+            <h2 className="text-2xl font-black text-white mt-0.5">
+              Backend Engineer Readiness
+            </h2>
+            <p className="text-xs text-slate-400 mt-1">
+              Holistic readiness evaluation across core engineering competencies for top-tier Java backend roles.
             </p>
           </div>
 
+          <div className="flex items-center gap-3 bg-dark-card border border-dark-border px-4 py-2 rounded-xl shrink-0">
+            <div>
+              <span className="text-[10px] text-slate-400 uppercase font-mono font-bold block">Overall Readiness</span>
+              <span className="text-2xl font-black text-emerald-400 font-mono">82%</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Skill Meter Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-3">
+            {[
+              { name: 'Java 17 Fundamentals', pct: 90 },
+              { name: 'Spring Boot 3.4 & JPA', pct: 80 },
+              { name: 'PostgreSQL & SQL Design', pct: 70 },
+              { name: 'DSA & Algorithms', pct: 80 }
+            ].map((s, i) => (
+              <div key={i} className="space-y-1 bg-dark-card border border-dark-border rounded-xl p-3">
+                <div className="flex justify-between text-xs font-semibold">
+                  <span className="text-slate-200">{s.name}</span>
+                  <span className="font-mono text-brand-400">{s.pct}%</span>
+                </div>
+                <div className="w-full h-1.5 bg-dark-surface rounded-full overflow-hidden border border-dark-border">
+                  <div className="h-full bg-brand-500 rounded-full" style={{ width: `${s.pct}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="space-y-3">
+            {[
+              { name: 'REST APIs & Security Filter', pct: 90 },
+              { name: 'System Design & Scalability', pct: 50 },
+              { name: 'Git, CI/CD & Cloud Deploy', pct: 90 },
+              { name: 'Technical Viva Communication', pct: 84 }
+            ].map((s, i) => (
+              <div key={i} className="space-y-1 bg-dark-card border border-dark-border rounded-xl p-3">
+                <div className="flex justify-between text-xs font-semibold">
+                  <span className="text-slate-200">{s.name}</span>
+                  <span className="font-mono text-emerald-400">{s.pct}%</span>
+                </div>
+                <div className="w-full h-1.5 bg-dark-surface rounded-full overflow-hidden border border-dark-border">
+                  <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${s.pct}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Interview Readiness Checklist */}
+        <div className="p-4 bg-dark-card border border-dark-border rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="flex flex-wrap items-center gap-3 text-slate-300">
+            <span className="text-emerald-400 font-bold">✓ Java fundamentals</span>
+            <span className="text-emerald-400 font-bold">✓ REST APIs</span>
+            <span className="text-emerald-400 font-bold">✓ Spring Boot</span>
+            <span className="text-amber-400">○ System Design</span>
+            <span className="text-amber-400">○ Advanced SQL</span>
+          </div>
           <button
-            onClick={() => window.print()}
-            className="px-4 py-2.5 bg-indigo-500 hover:bg-indigo-400 text-white text-xs font-bold rounded-xl shadow-md flex items-center gap-2 shrink-0 transition-all border border-indigo-400/30"
+            onClick={() => handleLoadSample()}
+            className="px-3.5 py-1.5 bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs rounded-lg transition-colors whitespace-nowrap"
           >
-            <FileText className="w-4 h-4" /> Export ATS Resume PDF
+            Load Sample Profile
           </button>
         </div>
       </div>

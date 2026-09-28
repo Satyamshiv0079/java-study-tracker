@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Header from './components/Header';
-import Navigation from './components/Navigation';
+import Sidebar from './components/Sidebar';
+import MobileNav from './components/MobileNav';
+import CommandPalette from './components/CommandPalette';
+import DemoGuardModal from './components/DemoGuardModal';
 import LandingTab from './components/LandingTab';
 import DashboardTab from './components/DashboardTab';
 import SyllabusTab from './components/SyllabusTab';
@@ -17,7 +21,38 @@ import { getDaySyllabus } from './data/syllabus';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://java-study-tracker.onrender.com';
 
+const TAB_TO_PATH = {
+  landing: '/',
+  dashboard: '/app/dashboard',
+  syllabus: '/app/learn',
+  coding: '/app/practice',
+  interview: '/app/interview',
+  project: '/app/projects',
+  analytics: '/app/analytics',
+  leaderboard: '/app/leaderboard',
+  career: '/app/career',
+  mentor: '/app/ai'
+};
+
+const PATH_TO_TAB = {
+  '/': 'landing',
+  '/demo': 'dashboard',
+  '/app': 'dashboard',
+  '/app/dashboard': 'dashboard',
+  '/app/learn': 'syllabus',
+  '/app/practice': 'coding',
+  '/app/interview': 'interview',
+  '/app/projects': 'project',
+  '/app/analytics': 'analytics',
+  '/app/leaderboard': 'leaderboard',
+  '/app/career': 'career',
+  '/app/ai': 'mentor'
+};
+
 export default function App() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [storageReady, setStorageReady] = useState(false);
   const [storageError, setStorageError] = useState(null);
   const [isDemoMode, setIsDemoMode] = useState(false);
@@ -26,38 +61,18 @@ export default function App() {
     const saved = localStorage.getItem('studyTrackerUser');
     return saved ? JSON.parse(saved) : null;
   });
+
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalIsLogin, setAuthModalIsLogin] = useState(true);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isDemoGuardOpen, setIsDemoGuardOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Protected tabs require authentication unless in Demo Preview mode
-  const protectedTabs = ['dashboard', 'syllabus', 'coding', 'interview', 'project', 'analytics', 'leaderboard', 'career', 'mentor'];
+  // Derive currentTab from URL path
+  const currentTab = PATH_TO_TAB[location.pathname] || (currentUser ? 'dashboard' : 'landing');
 
-  const [currentTab, setCurrentTabRaw] = useState(() => {
-    const saved = localStorage.getItem('studyTrackerUser');
-    return saved ? 'dashboard' : 'landing';
-  });
-
-  // Guard: if user tries to navigate to a protected tab without auth or demo preview, prompt login modal
-  const setCurrentTab = (tab) => {
-    if (protectedTabs.includes(tab) && !currentUser && !isDemoMode) {
-      setIsAuthModalOpen(true);
-      return;
-    }
-    setCurrentTabRaw(tab);
-  };
-
-  const handleExploreDemo = () => {
-    setIsDemoMode(true);
-    setCompletedDays([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]);
-    setCompletedDsa([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28]);
-    setStudyHours(94.5);
-    setVivaScore({ correct: 21, total: 25 });
-    setProjectMilestones(prev => prev.map((m, i) => ({ ...m, done: i < 6 })));
-    setStorageError(null);
-    setCurrentTabRaw('dashboard');
-  };
-
-  const [activeDay, setActiveDay] = useState(1);
+  const [activeDay, setActiveDay] = useState(27);
   const [completedDays, setCompletedDays] = useState([]);
   const [completedDsa, setCompletedDsa] = useState([]);
   const [studyHours, setStudyHours] = useState(0);
@@ -75,20 +90,20 @@ export default function App() {
     { id: 8, name: "Write tests, then actually deploy both frontend and backend", done: false }
   ]);
 
-  // Timer
+  // Timer state
   const [timerMode, setTimerMode] = useState('pomodoro');
   const [timerSeconds, setTimerSeconds] = useState(1500);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const timerIntervalRef = useRef(null);
 
-  // Code review
+  // Code review state
   const [sandboxCode, setSandboxCode] = useState('');
   const [reviewOutput, setReviewOutput] = useState('');
   const [isReviewing, setIsReviewing] = useState(false);
 
-  // AI Mentor
+  // AI Mentor state
   const [chatMessages, setChatMessages] = useState([
-    { sender: 'mentor', text: "Welcome to CodeMentor! I'm your AI Backend Engineering Mentor & Placement Coach. Ask me to explain any Java 17, Spring Boot 3.4, SQL, or System Design concept, quiz you on your 45-day curriculum, or review your code." }
+    { sender: 'mentor', text: "Welcome to CodeMentor! I'm your AI Backend Engineering Mentor & Placement Coach. Ask me to explain Java 17, Spring Boot 3.4, SQL, or System Design concepts, quiz you on your 45-day curriculum, or review your code." }
   ]);
   const [chatInput, setChatInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -96,7 +111,65 @@ export default function App() {
 
   const dayData = getDaySyllabus(activeDay);
 
-  // --- Load persisted state from PostgreSQL API on mount ---
+  // Navigation helper that updates React Router location
+  const setCurrentTab = (tab, specificDay) => {
+    if (specificDay) setActiveDay(specificDay);
+
+    // Protected check: if user navigates to /app/* without login or demo mode, open auth modal
+    if (tab !== 'landing' && !currentUser && !isDemoMode) {
+      setAuthModalIsLogin(true);
+      setIsAuthModalOpen(true);
+      return;
+    }
+
+    const targetPath = TAB_TO_PATH[tab] || '/app/dashboard';
+    navigate(targetPath);
+  };
+
+  // Launch interactive demo mode
+  const handleExploreDemo = () => {
+    setIsDemoMode(true);
+    setCompletedDays([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]);
+    setCompletedDsa([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28]);
+    setStudyHours(94.5);
+    setVivaScore({ correct: 21, total: 25 });
+    setProjectMilestones(prev => prev.map((m, i) => ({ ...m, done: i < 6 })));
+    setStorageError(null);
+    setActiveDay(27);
+    navigate('/app/dashboard');
+  };
+
+  // Synchronize route on initial mount or path change
+  useEffect(() => {
+    if (location.pathname === '/demo') {
+      handleExploreDemo();
+    } else if (location.pathname === '/login') {
+      setAuthModalIsLogin(true);
+      setIsAuthModalOpen(true);
+    } else if (location.pathname === '/register') {
+      setAuthModalIsLogin(false);
+      setIsAuthModalOpen(true);
+    } else if (location.pathname.startsWith('/app') && !currentUser && !isDemoMode) {
+      // Protected route guard: prompt login and redirect to landing
+      navigate('/');
+      setAuthModalIsLogin(true);
+      setIsAuthModalOpen(true);
+    }
+  }, [location.pathname, currentUser, isDemoMode]);
+
+  // Keyboard shortcut for Command Palette (Ctrl + K / Cmd + K)
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // --- Load persisted state from PostgreSQL API on mount for authenticated user ---
   useEffect(() => {
     async function loadData(retryCount = 0) {
       if (!currentUser || !currentUser.token) {
@@ -125,7 +198,7 @@ export default function App() {
           // Token expired or invalid — force re-login
           setCurrentUser(null);
           localStorage.removeItem('studyTrackerUser');
-          setCurrentTabRaw('landing');
+          navigate('/');
           setIsAuthModalOpen(true);
           setStorageReady(true);
           return;
@@ -226,7 +299,7 @@ export default function App() {
     }
     loadData();
 
-    // Keep-alive ping uses the public /api/health endpoint
+    // Keep-alive ping
     const pingInterval = setInterval(() => {
       fetch(`${API_BASE}/api/health`).catch(() => {});
     }, 10 * 60 * 1000);
@@ -311,7 +384,13 @@ export default function App() {
     }
   }
 
+  // Guard mutations in Demo Mode
   async function handleMarkDsaDone() {
+    if (isDemoMode && !currentUser) {
+      setIsDemoGuardOpen(true);
+      return;
+    }
+
     const isNowDone = !completedDsa.includes(activeDay);
     setCompletedDsa(
       isNowDone ? [...completedDsa, activeDay] : completedDsa.filter((d) => d !== activeDay)
@@ -330,6 +409,11 @@ export default function App() {
   }
 
   async function handleSaveNote() {
+    if (isDemoMode && !currentUser) {
+      setIsDemoGuardOpen(true);
+      return;
+    }
+
     setNotes({ ...notes, [activeDay]: activeNote });
 
     if (currentUser && currentUser.token) {
@@ -349,12 +433,16 @@ export default function App() {
   }
 
   async function handleToggleDayComplete(dayNum) {
+    if (isDemoMode && !currentUser) {
+      setIsDemoGuardOpen(true);
+      return;
+    }
+
     const isNowComplete = !completedDays.includes(dayNum);
     setCompletedDays(
       isNowComplete ? [...completedDays, dayNum] : completedDays.filter((d) => d !== dayNum)
     );
     
-    // Only sync to backend if authenticated
     if (currentUser && currentUser.token) {
       try {
         await fetch(`${API_BASE}/api/progress/me/${dayNum}`, {
@@ -368,6 +456,11 @@ export default function App() {
   }
 
   async function toggleMilestone(id) {
+    if (isDemoMode && !currentUser) {
+      setIsDemoGuardOpen(true);
+      return;
+    }
+
     setProjectMilestones(projectMilestones.map((m) => (m.id === id ? { ...m, done: !m.done } : m)));
 
     if (currentUser && currentUser.token) {
@@ -383,6 +476,11 @@ export default function App() {
   }
 
   async function handleRecordViva(attempt) {
+    if (isDemoMode && !currentUser) {
+      setIsDemoGuardOpen(true);
+      return;
+    }
+
     if (attempt.score >= 7) {
       setVivaScore(prev => ({ correct: prev.correct + 1, total: prev.total + 1 }));
     } else {
@@ -442,187 +540,260 @@ export default function App() {
       const text = data.candidates[0].content.parts[0].text;
       setChatMessages([...nextMessages, { sender: 'mentor', text }]);
     } catch (err) {
-      setChatMessages([...nextMessages, { sender: 'mentor', text: `Error: ${err.message}. Make sure the backend server is running on port 3001.` }]);
+      setChatMessages([...nextMessages, { sender: 'mentor', text: `Error: ${err.message}. Make sure the backend server is running.` }]);
     } finally {
       setIsGenerating(false);
     }
   }
 
+  const handleOpenAuth = (isLogin = true) => {
+    setAuthModalIsLogin(isLogin);
+    setIsAuthModalOpen(true);
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setIsDemoMode(false);
+    localStorage.removeItem('studyTrackerUser');
+    setCompletedDays([]);
+    setCompletedDsa([]);
+    setStudyHours(0);
+    setNotes({});
+    setVivaScore({ correct: 0, total: 0 });
+    setIsProfileModalOpen(false);
+    navigate('/');
+  };
+
   if (!storageReady) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center text-slate-500 dark:text-slate-400 text-sm transition-colors duration-200">
-        Connecting to Java Spring Boot Backend...
+      <div className="min-h-screen bg-dark-bg flex items-center justify-center text-slate-400 text-xs font-mono">
+        Connecting to CodeMentor Java Backend...
       </div>
     );
   }
 
+  const isPublicLanding = currentTab === 'landing';
+
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans flex flex-col antialiased transition-colors duration-200">
-      <Header
+    <div className="min-h-screen bg-dark-bg text-slate-100 font-sans antialiased selection:bg-brand-600 selection:text-white flex flex-col">
+      {isPublicLanding ? (
+        // Public SaaS Landing Experience
+        <div className="flex flex-col min-h-screen">
+          <Header
+            isTimerRunning={isTimerRunning}
+            timerMode={timerMode}
+            timerSeconds={timerSeconds}
+            handleTimerControl={handleTimerControl}
+            handleTimerReset={handleTimerReset}
+            formatTime={formatTime}
+            currentUser={currentUser}
+            isDemoMode={isDemoMode}
+            onOpenAuth={() => handleOpenAuth(true)}
+            onOpenProfile={() => setIsProfileModalOpen(true)}
+            onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+            onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
+          />
+
+          <main className="flex-1 p-4 lg:p-8 max-w-7xl w-full mx-auto">
+            <LandingTab
+              onExploreDemo={handleExploreDemo}
+              onOpenAuth={handleOpenAuth}
+              currentUser={currentUser}
+            />
+          </main>
+        </div>
+      ) : (
+        // Authenticated & Interactive Demo Workspace Shell
+        <div className="flex h-screen overflow-hidden">
+          {/* Persistent Sidebar (Desktop) / Slide-out (Mobile) */}
+          <Sidebar
+            currentTab={currentTab}
+            onSelectTab={setCurrentTab}
+            completedDays={completedDays}
+            currentUser={currentUser}
+            isDemoMode={isDemoMode}
+            isOpenMobile={isMobileMenuOpen}
+            onCloseMobile={() => setIsMobileMenuOpen(false)}
+            onOpenProfile={() => setIsProfileModalOpen(true)}
+            onOpenAuth={() => handleOpenAuth(true)}
+            onLogout={handleLogout}
+          />
+
+          {/* Main Content Workspace */}
+          <div className="flex-1 flex flex-col h-full overflow-hidden">
+            <Header
+              isTimerRunning={isTimerRunning}
+              timerMode={timerMode}
+              timerSeconds={timerSeconds}
+              handleTimerControl={handleTimerControl}
+              handleTimerReset={handleTimerReset}
+              formatTime={formatTime}
+              currentUser={currentUser}
+              isDemoMode={isDemoMode}
+              onOpenAuth={() => handleOpenAuth(true)}
+              onOpenProfile={() => setIsProfileModalOpen(true)}
+              onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+              onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
+            />
+
+            <main className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar pb-20 lg:pb-8">
+              {/* Interactive Demo Mode Notice Banner */}
+              {isDemoMode && !currentUser && (
+                <div className="mb-6 p-4 bg-gradient-to-r from-brand-950 via-dark-card to-dark-surface border border-brand-500/40 rounded-2xl shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 text-white">
+                  <div className="flex items-center gap-3">
+                    <span className="px-2.5 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-full text-xs font-bold tracking-wide uppercase font-mono">
+                      Demo Preview Mode
+                    </span>
+                    <p className="text-xs sm:text-sm text-slate-200">
+                      You are exploring CodeMentor with sample telemetry. <strong>Sign in</strong> to save real learning progress to PostgreSQL.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleOpenAuth(true)}
+                    className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs rounded-xl shadow-md transition-all whitespace-nowrap"
+                  >
+                    Sign In / Register
+                  </button>
+                </div>
+              )}
+
+              {/* View Router */}
+              {currentTab === 'dashboard' && (
+                <DashboardTab
+                  storageError={storageError}
+                  completedDays={completedDays}
+                  studyHours={studyHours}
+                  completedDsa={completedDsa}
+                  projectMilestones={projectMilestones}
+                  vivaScore={vivaScore}
+                  activeDay={activeDay}
+                  setActiveDay={setActiveDay}
+                  dayData={dayData}
+                  handleToggleDayComplete={handleToggleDayComplete}
+                  activeNote={activeNote}
+                  setActiveNote={setActiveNote}
+                  handleSaveNote={handleSaveNote}
+                  setCurrentTab={setCurrentTab}
+                  currentUser={currentUser}
+                  isDemoMode={isDemoMode}
+                />
+              )}
+
+              {currentTab === 'syllabus' && (
+                <SyllabusTab
+                  activeDay={activeDay}
+                  setActiveDay={setActiveDay}
+                  completedDays={completedDays}
+                  handleToggleDayComplete={handleToggleDayComplete}
+                  dayData={dayData}
+                  setCurrentTab={setCurrentTab}
+                />
+              )}
+
+              {currentTab === 'coding' && (
+                <CodingTab
+                  activeDay={activeDay}
+                  dayData={dayData}
+                  completedDsa={completedDsa}
+                  handleMarkDsaDone={handleMarkDsaDone}
+                  sandboxCode={sandboxCode}
+                  setSandboxCode={setSandboxCode}
+                  handleGetReview={handleGetReview}
+                  isReviewing={isReviewing}
+                  reviewOutput={reviewOutput}
+                />
+              )}
+
+              {currentTab === 'interview' && (
+                <InterviewTab
+                  vivaScore={vivaScore}
+                  setVivaScore={setVivaScore}
+                  onRecordViva={handleRecordViva}
+                />
+              )}
+
+              {currentTab === 'project' && (
+                <ProjectTab
+                  projectMilestones={projectMilestones}
+                  toggleMilestone={toggleMilestone}
+                />
+              )}
+
+              {currentTab === 'analytics' && (
+                <AnalyticsTab
+                  completedDays={completedDays}
+                  studyHours={studyHours}
+                  completedDsa={completedDsa}
+                  projectMilestones={projectMilestones}
+                  vivaScore={vivaScore}
+                  currentUser={currentUser}
+                  apiBase={API_BASE}
+                />
+              )}
+
+              {currentTab === 'leaderboard' && (
+                <LeaderboardTab
+                  currentUser={currentUser}
+                  completedDays={completedDays}
+                  studyHours={studyHours}
+                  completedDsa={completedDsa}
+                  apiBase={API_BASE}
+                />
+              )}
+
+              {currentTab === 'career' && (
+                <CareerHubTab />
+              )}
+
+              {currentTab === 'mentor' && (
+                <MentorTab
+                  chatMessages={chatMessages}
+                  chatInput={chatInput}
+                  setChatInput={setChatInput}
+                  handleSendMessage={handleSendMessage}
+                  isGenerating={isGenerating}
+                  chatEndRef={chatEndRef}
+                />
+              )}
+            </main>
+
+            {/* Mobile Bottom Navigation Bar */}
+            <MobileNav
+              currentTab={currentTab}
+              onSelectTab={setCurrentTab}
+              onOpenProfile={() => setIsProfileModalOpen(true)}
+              onOpenAuth={() => handleOpenAuth(true)}
+              currentUser={currentUser}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Global Command Palette (Ctrl + K) */}
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        onNavigate={setCurrentTab}
+        onToggleTimer={handleTimerControl}
         isTimerRunning={isTimerRunning}
-        timerMode={timerMode}
-        timerSeconds={timerSeconds}
-        handleTimerControl={handleTimerControl}
-        handleTimerReset={handleTimerReset}
-        formatTime={formatTime}
-        currentUser={currentUser}
-        onOpenAuth={() => setIsAuthModalOpen(true)}
-        onOpenProfile={() => setIsProfileModalOpen(true)}
+        apiBase={API_BASE}
       />
 
-      <Navigation currentTab={currentTab} setCurrentTab={setCurrentTab} />
-
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6 overflow-y-auto custom-scrollbar">
-        {/* Interactive Demo Mode Notice Banner */}
-        {isDemoMode && !currentUser && (
-          <div className="mb-6 p-4 bg-gradient-to-r from-indigo-950 via-slate-900 to-purple-950 border border-indigo-700/60 rounded-2xl shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 text-white">
-            <div className="flex items-center gap-3">
-              <span className="px-2.5 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-full text-xs font-bold tracking-wide uppercase">
-                Demo Preview Mode
-              </span>
-              <p className="text-xs sm:text-sm text-indigo-100">
-                You are exploring CodeMentor with sample telemetry. <strong>Sign in</strong> to save real learning progress to the PostgreSQL database.
-              </p>
-            </div>
-            <button
-              onClick={() => setIsAuthModalOpen(true)}
-              className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-xs rounded-xl shadow-md transition-all whitespace-nowrap"
-            >
-              Sign In / Register
-            </button>
-          </div>
-        )}
-
-        {/* Global Storage Error Banner */}
-        {storageError && currentUser && (
-          <div className="mb-6 p-3.5 bg-rose-950/80 border border-rose-800/80 rounded-xl text-rose-200 text-xs sm:text-sm flex items-center justify-between gap-3 shadow-lg">
-            <span>⚠️ {storageError}</span>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-3 py-1 bg-rose-800/60 hover:bg-rose-700/80 text-white rounded-lg text-xs font-semibold"
-            >
-              Retry
-            </button>
-          </div>
-        )}
-
-        {currentTab === 'landing' && (
-          <LandingTab
-            onExploreDemo={handleExploreDemo}
-            onOpenAuth={() => setIsAuthModalOpen(true)}
-            currentUser={currentUser}
-          />
-        )}
-
-        {currentTab === 'dashboard' && (
-          <DashboardTab
-            storageError={storageError}
-            completedDays={completedDays}
-            studyHours={studyHours}
-            completedDsa={completedDsa}
-            projectMilestones={projectMilestones}
-            vivaScore={vivaScore}
-            activeDay={activeDay}
-            setActiveDay={setActiveDay}
-            dayData={dayData}
-            handleToggleDayComplete={handleToggleDayComplete}
-            activeNote={activeNote}
-            setActiveNote={setActiveNote}
-            handleSaveNote={handleSaveNote}
-            setCurrentTab={setCurrentTab}
-          />
-        )}
-
-        {currentTab === 'syllabus' && (
-          <SyllabusTab
-            activeDay={activeDay}
-            setActiveDay={setActiveDay}
-            completedDays={completedDays}
-            handleToggleDayComplete={handleToggleDayComplete}
-            dayData={dayData}
-            setCurrentTab={setCurrentTab}
-          />
-        )}
-
-        {currentTab === 'coding' && (
-          <CodingTab
-            activeDay={activeDay}
-            dayData={dayData}
-            completedDsa={completedDsa}
-            handleMarkDsaDone={handleMarkDsaDone}
-            sandboxCode={sandboxCode}
-            setSandboxCode={setSandboxCode}
-            handleGetReview={handleGetReview}
-            isReviewing={isReviewing}
-            reviewOutput={reviewOutput}
-          />
-        )}
-
-        {currentTab === 'interview' && (
-          <InterviewTab
-            vivaScore={vivaScore}
-            setVivaScore={setVivaScore}
-            onRecordViva={handleRecordViva}
-          />
-        )}
-
-        {currentTab === 'project' && (
-          <ProjectTab
-            projectMilestones={projectMilestones}
-            toggleMilestone={toggleMilestone}
-          />
-        )}
-
-        {currentTab === 'analytics' && (
-          <AnalyticsTab
-            completedDays={completedDays}
-            studyHours={studyHours}
-            completedDsa={completedDsa}
-            projectMilestones={projectMilestones}
-            vivaScore={vivaScore}
-            currentUser={currentUser}
-            apiBase={API_BASE}
-          />
-        )}
-
-        {currentTab === 'leaderboard' && (
-          <LeaderboardTab
-            currentUser={currentUser}
-            completedDays={completedDays}
-            studyHours={studyHours}
-            completedDsa={completedDsa}
-            apiBase={API_BASE}
-          />
-        )}
-
-        {currentTab === 'career' && (
-          <CareerHubTab />
-        )}
-
-        {currentTab === 'mentor' && (
-          <MentorTab
-            chatMessages={chatMessages}
-            chatInput={chatInput}
-            setChatInput={setChatInput}
-            handleSendMessage={handleSendMessage}
-            isGenerating={isGenerating}
-            chatEndRef={chatEndRef}
-          />
-        )}
-      </main>
-
+      {/* Auth Modal (Login / Register) */}
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
+        initialIsLogin={authModalIsLogin}
         onAuthSuccess={(user) => {
           setCurrentUser(user);
           setIsDemoMode(false);
           localStorage.setItem('studyTrackerUser', JSON.stringify(user));
           setIsAuthModalOpen(false);
-          setCurrentTabRaw('dashboard');
+          navigate('/app/dashboard');
         }}
       />
 
+      {/* Profile Modal */}
       <ProfileModal
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
@@ -630,18 +801,14 @@ export default function App() {
         completedDays={completedDays}
         studyHours={studyHours}
         completedDsa={completedDsa}
-        onLogout={() => {
-          setCurrentUser(null);
-          setIsDemoMode(false);
-          localStorage.removeItem('studyTrackerUser');
-          setCompletedDays([]);
-          setCompletedDsa([]);
-          setStudyHours(0);
-          setNotes({});
-          setVivaScore({ correct: 0, total: 0 });
-          setIsProfileModalOpen(false);
-          setCurrentTabRaw('landing');
-        }}
+        onLogout={handleLogout}
+      />
+
+      {/* Demo Guard Modal */}
+      <DemoGuardModal
+        isOpen={isDemoGuardOpen}
+        onClose={() => setIsDemoGuardOpen(false)}
+        onOpenAuth={(isLogin) => handleOpenAuth(isLogin)}
       />
     </div>
   );

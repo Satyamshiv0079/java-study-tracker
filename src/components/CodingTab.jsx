@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Sparkles, CheckCircle, AlertCircle, Code, Cpu, Terminal } from 'lucide-react';
+import { Play, Sparkles, CheckCircle2, Code2, Cpu, Terminal, ExternalLink, Flame, Check } from 'lucide-react';
 
 export default function CodingTab({
   activeDay,
@@ -22,10 +22,10 @@ export default function CodingTab({
 
 public class Solution {
     public static void main(String[] args) {
-        System.out.println("=== Running Test Execution ===");
+        System.out.println("=== CodeMentor Live JVM Sandbox Execution ===");
         try {
             Solution sol = new Solution();
-            System.out.println("Executing Solution class...");
+            System.out.println("Solution class instantiated successfully.");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -44,7 +44,7 @@ public class Solution {
     const fullCode = prepareJavaCode(sandboxCode);
 
     try {
-      // Call Piston Open Execution API (100% free, no key required)
+      // Call Piston Open Execution API (Java 15.0.2 JVM runtime)
       const res = await fetch("https://emkc.org/api/v2/piston/execute", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -118,157 +118,209 @@ Evaluate and return ONLY a JSON object:
         timeComplexity: "O(N)",
         spaceComplexity: "O(1)",
         isOptimal: true,
-        feedback: "Code logic structure looks clean. Consider testing edge cases for null or empty arrays."
+        feedback: "Code logic structure looks clean. Consider testing edge cases for empty inputs and boundary checks."
       });
     } finally {
       setIsReviewing(false);
     }
   }
 
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
-      {/* Problem Description Panel */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 flex flex-col justify-between shadow-sm">
-        <div>
-          <div className="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-4 mb-4">
-            <div>
-              <span className="text-xs font-mono font-bold text-indigo-500 uppercase tracking-wider">DAY {activeDay} DSA CHALLENGE</span>
-              <h2 className="text-xl font-extrabold text-slate-900 dark:text-white mt-1">{dayData.dsa.title}</h2>
-            </div>
-            <span className={`px-3 py-1 rounded-full text-xs font-bold font-mono border ${
-              dayData.dsa.difficulty === 'Easy' ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800' : 
-              dayData.dsa.difficulty === 'Hard' ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-800' : 
-              'bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800'
-            }`}>
-              {dayData.dsa.difficulty.toUpperCase()}
-            </span>
-          </div>
+  const isProblemDone = completedDsa.includes(activeDay);
 
-          <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium">{dayData.dsa.description}</p>
-          <div className="mt-4 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-mono">
-            <Code className="w-3.5 h-3.5 text-indigo-500" />
-            <span>Platform: <strong>{dayData.dsa.platform}</strong></span>
+  return (
+    <div className="space-y-4 max-w-7xl mx-auto h-full">
+      {/* Top DSA Practice Stats Bar */}
+      <div className="bg-dark-surface border border-dark-border rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 rounded-xl bg-brand-600/20 text-brand-400 border border-brand-500/30 flex items-center justify-center font-bold">
+            <Code2 className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-sm font-extrabold text-white">DSA Practice Workspace</h2>
+            <p className="text-[11px] text-slate-400 font-mono">
+              Day {activeDay} • Java 17 Sandbox
+            </p>
           </div>
         </div>
 
-        <div className="mt-8 pt-4 border-t border-slate-100 dark:border-slate-800">
-          <button
-            onClick={handleMarkDsaDone}
-            className={`w-full py-3 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-2 ${
-              completedDsa.includes(activeDay)
-                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20'
-                : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-md'
-            }`}
-          >
-            {completedDsa.includes(activeDay) ? (
-              <>
-                <CheckCircle className="w-4 h-4 text-emerald-500" />
-                Problem Marked as Completed
-              </>
-            ) : (
-              'Mark DSA Problem as Done'
-            )}
-          </button>
+        <div className="flex items-center gap-3 text-xs font-mono">
+          <div className="px-3 py-1 rounded-xl bg-dark-card border border-dark-border flex items-center gap-2">
+            <span className="text-slate-400">Solved:</span>
+            <span className="font-bold text-white">{completedDsa.length} / 120</span>
+          </div>
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+            <span>Easy: 42</span>
+          </div>
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400">
+            <span>Med: 31</span>
+          </div>
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400">
+            <span>Hard: 9</span>
+          </div>
         </div>
       </div>
 
-      {/* Live JVM Editor Panel */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex flex-col justify-between shadow-sm space-y-4">
-        <div className="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
-          <div className="flex items-center gap-2">
-            <Cpu className="w-4 h-4 text-emerald-500" />
-            <h3 className="text-xs font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-              Live JVM Execution Engine (Piston Java Runtime)
-            </h3>
+      {/* Editor & Problem Split Screen */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Left: Problem Description Panel */}
+        <div className="bg-dark-surface border border-dark-border rounded-2xl p-6 flex flex-col justify-between shadow-sm space-y-6">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-2 border-b border-dark-border pb-4">
+              <div>
+                <span className="text-[10px] font-mono font-bold text-brand-400 uppercase tracking-wider">
+                  DAY {activeDay} PROBLEM
+                </span>
+                <h3 className="text-xl font-extrabold text-white mt-0.5">
+                  {dayData.dsa.title}
+                </h3>
+              </div>
+
+              <span className={`px-2.5 py-1 rounded-full text-xs font-bold font-mono border ${
+                dayData.dsa.difficulty === 'Easy' 
+                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' 
+                  : dayData.dsa.difficulty === 'Hard' 
+                  ? 'bg-rose-500/10 text-rose-400 border-rose-500/30' 
+                  : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+              }`}>
+                {dayData.dsa.difficulty.toUpperCase()}
+              </span>
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-xs text-slate-300 leading-relaxed font-normal">
+                {dayData.dsa.description}
+              </p>
+
+              <div className="p-3 bg-dark-card border border-dark-border rounded-xl text-xs space-y-1">
+                <span className="text-[10px] font-mono uppercase text-slate-400 block font-semibold">Recommended Practice Platform</span>
+                <span className="font-semibold text-slate-200">{dayData.dsa.platform}</span>
+              </div>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="pt-4 border-t border-dark-border">
             <button
-              onClick={handleAIReview}
-              disabled={isReviewing}
-              className="px-3 py-1.5 bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-300 hover:bg-teal-100 text-xs font-bold rounded-lg flex items-center gap-1.5 transition-colors disabled:opacity-50"
+              onClick={handleMarkDsaDone}
+              className={`w-full py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                isProblemDone
+                  ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/25'
+                  : 'bg-brand-600 hover:bg-brand-500 text-white shadow-md shadow-brand-600/30'
+              }`}
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              {isReviewing ? 'Analyzing...' : 'AI Code Review'}
-            </button>
-
-            <button
-              onClick={handleRunCode}
-              disabled={isExecuting}
-              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg shadow-sm flex items-center gap-1.5 transition-colors disabled:opacity-50"
-            >
-              {isExecuting ? (
-                <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              {isProblemDone ? (
+                <>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                  Problem Solved (Database Persisted)
+                </>
               ) : (
-                <Play className="w-3.5 h-3.5 fill-current" />
+                <>
+                  <Check className="w-4 h-4" />
+                  Mark Problem as Solved
+                </>
               )}
-              {isExecuting ? 'Compiling JVM...' : 'Run Java Code'}
             </button>
           </div>
         </div>
 
-        {/* Textarea Code Editor */}
-        <textarea
-          value={sandboxCode}
-          onChange={(e) => setSandboxCode(e.target.value)}
-          spellCheck="false"
-          rows={12}
-          className="w-full bg-slate-950 text-emerald-400 font-mono text-xs rounded-xl p-4 focus:ring-2 focus:ring-emerald-500 focus:outline-none resize-y leading-relaxed custom-scrollbar shadow-inner"
-        />
-
-        {/* Live Execution Output Terminal */}
-        {executionOutput && (
-          <div className="bg-slate-950 border border-slate-800 rounded-xl p-4 font-mono text-xs space-y-2 animate-in fade-in duration-200">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2 text-[11px] text-slate-400 font-bold uppercase tracking-wider">
-              <span className="flex items-center gap-1 text-emerald-400">
-                <Terminal className="w-3.5 h-3.5" />
-                Live Execution Terminal Output
-              </span>
-              <span className={executionOutput.code === 0 ? 'text-emerald-400' : 'text-rose-400'}>
-                Exit Code: {executionOutput.code}
+        {/* Right: Live JVM Sandbox Editor */}
+        <div className="bg-dark-surface border border-dark-border rounded-2xl p-5 flex flex-col justify-between shadow-sm space-y-4">
+          {/* Editor Header Bar */}
+          <div className="flex items-center justify-between gap-2 border-b border-dark-border pb-3">
+            <div className="flex items-center gap-2">
+              <Cpu className="w-4 h-4 text-brand-400" />
+              <span className="text-xs font-bold text-slate-200 uppercase tracking-wider font-mono">
+                Solution.java
               </span>
             </div>
 
-            {executionOutput.stdout && (
-              <pre className="text-emerald-400 whitespace-pre-wrap leading-relaxed">
-                {executionOutput.stdout}
-              </pre>
-            )}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleAIReview}
+                disabled={isReviewing}
+                className="px-3 py-1.5 bg-dark-card hover:bg-dark-hover border border-dark-border text-brand-300 hover:text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors disabled:opacity-50"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-brand-400" />
+                {isReviewing ? 'Analyzing...' : 'AI Review'}
+              </button>
 
-            {executionOutput.stderr && (
-              <pre className="text-rose-400 whitespace-pre-wrap leading-relaxed">
-                {executionOutput.stderr}
-              </pre>
-            )}
-
-            {!executionOutput.stdout && !executionOutput.stderr && (
-              <p className="text-slate-500 italic">Code executed successfully with zero console output.</p>
-            )}
+              <button
+                onClick={handleRunCode}
+                disabled={isExecuting}
+                className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl shadow-sm shadow-emerald-600/30 flex items-center gap-1.5 transition-colors disabled:opacity-50"
+              >
+                {isExecuting ? (
+                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                )}
+                {isExecuting ? 'Compiling...' : 'Run Code'}
+              </button>
+            </div>
           </div>
-        )}
 
-        {/* AI Code Review Box */}
-        {reviewOutput && (
-          <div className="bg-teal-950/40 border border-teal-800/60 rounded-xl p-4 font-mono text-xs space-y-2 animate-in fade-in duration-200">
-            <div className="flex items-center justify-between border-b border-teal-800/50 pb-2 text-[11px] text-teal-300 font-bold uppercase tracking-wider">
-              <span className="flex items-center gap-1.5 text-teal-400">
-                <Sparkles className="w-3.5 h-3.5" />
-                AI Senior Engineer Code Review
-              </span>
-              <div className="flex items-center gap-2">
-                <span className="bg-teal-900/60 text-teal-300 px-2 py-0.5 rounded text-[10px]">
-                  Time: {reviewOutput.timeComplexity || 'O(N)'}
+          {/* Code Textarea Editor */}
+          <textarea
+            value={sandboxCode}
+            onChange={(e) => setSandboxCode(e.target.value)}
+            spellCheck="false"
+            rows={12}
+            className="w-full bg-[#070A10] text-emerald-400 font-mono text-xs rounded-xl p-4 focus:ring-1 focus:ring-brand-500 focus:outline-none resize-y leading-relaxed custom-scrollbar shadow-inner border border-dark-border"
+          />
+
+          {/* Live Execution Output Terminal */}
+          {executionOutput && (
+            <div className="bg-[#070A10] border border-dark-border rounded-xl p-4 font-mono text-xs space-y-2 animate-in fade-in duration-150">
+              <div className="flex items-center justify-between border-b border-dark-border/80 pb-2 text-[11px] text-slate-400 font-bold uppercase tracking-wider">
+                <span className="flex items-center gap-1.5 text-emerald-400">
+                  <Terminal className="w-3.5 h-3.5" />
+                  Terminal Output
                 </span>
-                <span className="bg-teal-900/60 text-teal-300 px-2 py-0.5 rounded text-[10px]">
-                  Space: {reviewOutput.spaceComplexity || 'O(1)'}
+                <span className={executionOutput.code === 0 ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
+                  Exit Code: {executionOutput.code ?? 0}
                 </span>
               </div>
+
+              {executionOutput.stdout && (
+                <pre className="text-emerald-400 whitespace-pre-wrap leading-relaxed">
+                  {executionOutput.stdout}
+                </pre>
+              )}
+
+              {executionOutput.stderr && (
+                <pre className="text-rose-400 whitespace-pre-wrap leading-relaxed">
+                  {executionOutput.stderr}
+                </pre>
+              )}
+
+              {!executionOutput.stdout && !executionOutput.stderr && (
+                <p className="text-slate-500 italic">Code executed successfully with no standard output.</p>
+              )}
             </div>
-            <p className="text-slate-200 text-xs font-sans leading-relaxed">
-              {reviewOutput.feedback}
-            </p>
-          </div>
-        )}
+          )}
+
+          {/* AI Code Review Box */}
+          {reviewOutput && (
+            <div className="bg-brand-950/40 border border-brand-800/60 rounded-xl p-4 font-mono text-xs space-y-2 animate-in fade-in duration-150">
+              <div className="flex items-center justify-between border-b border-brand-800/50 pb-2 text-[11px] text-brand-300 font-bold uppercase tracking-wider">
+                <span className="flex items-center gap-1.5 text-brand-400">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  AI Complexity & Code Review
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="bg-brand-900/60 text-brand-200 px-2 py-0.5 rounded text-[10px]">
+                    Time: {reviewOutput.timeComplexity || 'O(N)'}
+                  </span>
+                  <span className="bg-brand-900/60 text-brand-200 px-2 py-0.5 rounded text-[10px]">
+                    Space: {reviewOutput.spaceComplexity || 'O(1)'}
+                  </span>
+                </div>
+              </div>
+              <p className="text-slate-200 text-xs font-sans leading-relaxed">
+                {reviewOutput.feedback}
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Menu, Search, Clock, Play, Pause, RotateCcw, User, LogIn, Sparkles, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 export default function Header({
@@ -9,65 +10,122 @@ export default function Header({
   handleTimerReset,
   formatTime,
   currentUser,
+  isDemoMode,
   onOpenAuth,
-  onOpenProfile
+  onOpenProfile,
+  onOpenCommandPalette,
+  onOpenMobileMenu
 }) {
   const { theme, toggleTheme } = useTheme();
 
   return (
-    <header className="border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur sticky top-0 z-50 px-4 py-3 flex flex-wrap items-center justify-between gap-4 shadow-sm transition-colors duration-200">
+    <header className="h-14 border-b border-dark-border bg-dark-surface/90 backdrop-blur-md sticky top-0 z-30 px-4 flex items-center justify-between gap-4">
+      {/* Left: Mobile Menu Toggle & Breadcrumb / Search */}
       <div className="flex items-center gap-3">
-        <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center shadow-[0_0_15px_rgba(79,70,229,0.3)]">
-          <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-        </div>
-        <div>
-          <h1 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300">
-            CodeMentor
-          </h1>
-          <p className="text-xs text-indigo-600 dark:text-indigo-400 font-mono">45-Day Java & Backend Prep</p>
-        </div>
+        <button
+          onClick={onOpenMobileMenu}
+          className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-dark-hover lg:hidden"
+          aria-label="Open Navigation Menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
+        {/* Command Palette Trigger Search Input */}
+        <button
+          onClick={onOpenCommandPalette}
+          className="hidden sm:flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-dark-card hover:bg-dark-hover border border-dark-border text-slate-400 text-xs transition-colors w-64 md:w-80 justify-between group"
+        >
+          <div className="flex items-center gap-2 truncate">
+            <Search className="w-3.5 h-3.5 text-slate-400 group-hover:text-brand-400 transition-colors" />
+            <span className="truncate">Search topics, lessons, DSA...</span>
+          </div>
+          <kbd className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-dark-surface text-slate-400 border border-dark-border shrink-0">
+            Ctrl K
+          </kbd>
+        </button>
       </div>
 
-      <div className="flex items-center gap-3">
-        {/* User Account / Auth Button */}
+      {/* Right: Timer, Demo indicator, Theme, Account */}
+      <div className="flex items-center gap-2.5">
+        {/* Mobile Search Button */}
         <button
-          onClick={currentUser ? onOpenProfile : onOpenAuth}
-          className="px-3 py-1.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-xs font-bold transition-all flex items-center gap-1.5"
+          onClick={onOpenCommandPalette}
+          className="sm:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-dark-hover"
+          title="Search (Ctrl + K)"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-          {currentUser ? currentUser.username : 'Log In / Sign Up'}
+          <Search className="w-4 h-4" />
         </button>
 
-        {/* Theme Toggle */}
-        <button
-          onClick={toggleTheme}
-          className="p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-          aria-label="Toggle Theme"
-        >
-          {theme === 'dark' ? (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-          ) : (
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-          )}
-        </button>
-
-        {/* Timer */}
-        <div className="flex items-center gap-2 bg-slate-100/80 dark:bg-slate-950/80 border border-slate-300 dark:border-slate-800 rounded-lg px-3 py-1.5 shadow-inner transition-colors duration-200">
-          <span className={`h-2.5 w-2.5 rounded-full ${isTimerRunning ? 'bg-red-500 animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'bg-slate-400 dark:bg-slate-600'}`}></span>
-          <span className="font-mono text-sm tracking-wider font-semibold text-slate-700 dark:text-slate-200">
-            {timerMode.toUpperCase()}: <span className="text-emerald-600 dark:text-emerald-400">{formatTime(timerSeconds)}</span>
+        {/* Pomodoro Timer Bar */}
+        <div className="flex items-center gap-2 bg-dark-card border border-dark-border rounded-xl px-2.5 py-1 text-xs">
+          <span className={`h-2 w-2 rounded-full ${isTimerRunning ? 'bg-rose-500 animate-pulse' : 'bg-slate-500'}`} />
+          <span className="font-mono font-semibold text-slate-200 hidden md:inline">
+            {timerMode.toUpperCase()}:
           </span>
-          <button onClick={handleTimerControl} className={`ml-2 px-2.5 py-0.5 rounded text-xs font-semibold transition-all ${isTimerRunning ? 'bg-amber-100 dark:bg-amber-600/30 hover:bg-amber-200 dark:hover:bg-amber-600/50 text-amber-700 dark:text-amber-300' : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_8px_rgba(16,185,129,0.3)]'}`}>
-            {isTimerRunning ? 'Pause' : 'Start'}
+          <span className="font-mono font-bold text-emerald-400">
+            {formatTime(timerSeconds)}
+          </span>
+          <button
+            onClick={handleTimerControl}
+            className={`p-1 rounded-lg transition-colors ${
+              isTimerRunning
+                ? 'text-amber-400 hover:bg-amber-500/10'
+                : 'text-emerald-400 hover:bg-emerald-500/10'
+            }`}
+            title={isTimerRunning ? 'Pause' : 'Start'}
+          >
+            {isTimerRunning ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5 fill-current" />}
           </button>
-          <div className="flex gap-1 border-l border-slate-300 dark:border-slate-800 pl-2">
-            <button onClick={() => handleTimerReset('pomodoro')} className="text-[10px] text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-slate-200 hover:bg-slate-300 dark:bg-slate-800/40 dark:hover:bg-slate-700 px-1.5 py-0.5 rounded transition">25m</button>
-            <button onClick={() => handleTimerReset('study')} className="text-[10px] text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-slate-200 hover:bg-slate-300 dark:bg-slate-800/40 dark:hover:bg-slate-700 px-1.5 py-0.5 rounded transition">50m</button>
-            <button onClick={() => handleTimerReset('break')} className="text-[10px] text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-slate-200 hover:bg-slate-300 dark:bg-slate-800/40 dark:hover:bg-slate-700 px-1.5 py-0.5 rounded transition">10m</button>
+
+          <div className="hidden lg:flex items-center gap-1 border-l border-dark-border pl-1.5">
+            <button
+              onClick={() => handleTimerReset('pomodoro')}
+              className={`text-[10px] px-1 rounded transition-colors ${timerMode === 'pomodoro' ? 'text-brand-300 font-bold' : 'text-slate-400 hover:text-slate-200'}`}
+            >
+              25m
+            </button>
+            <button
+              onClick={() => handleTimerReset('study')}
+              className={`text-[10px] px-1 rounded transition-colors ${timerMode === 'study' ? 'text-brand-300 font-bold' : 'text-slate-400 hover:text-slate-200'}`}
+            >
+              50m
+            </button>
+            <button
+              onClick={() => handleTimerReset('break')}
+              className={`text-[10px] px-1 rounded transition-colors ${timerMode === 'break' ? 'text-brand-300 font-bold' : 'text-slate-400 hover:text-slate-200'}`}
+            >
+              10m
+            </button>
           </div>
         </div>
+
+        {/* Demo Mode Badge */}
+        {isDemoMode && !currentUser && (
+          <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/30">
+            <Sparkles className="w-3 h-3 text-amber-400" /> Demo
+          </span>
+        )}
+
+        {/* User Account Button */}
+        {currentUser ? (
+          <button
+            onClick={onOpenProfile}
+            className="flex items-center gap-2 pl-2 pr-3 py-1 bg-dark-card hover:bg-dark-hover border border-dark-border rounded-xl text-xs font-semibold text-slate-200 transition-colors"
+          >
+            <div className="h-6 w-6 rounded-lg bg-brand-600 text-white flex items-center justify-center font-bold text-[11px]">
+              {currentUser.username ? currentUser.username[0].toUpperCase() : 'U'}
+            </div>
+            <span className="hidden sm:inline">{currentUser.username}</span>
+          </button>
+        ) : (
+          <button
+            onClick={onOpenAuth}
+            className="px-3 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs transition-colors flex items-center gap-1.5 shadow-sm shadow-brand-600/30"
+          >
+            <LogIn className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Sign In</span>
+          </button>
+        )}
       </div>
     </header>
   );
