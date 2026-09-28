@@ -10,31 +10,18 @@ The project is being developed with a focus on real backend engineering, securit
 
 ## 📌 Project Status
 
-**Current status**: Active development
+**Current status**: Hardened Production Prototype (Java 17 + Spring Boot 3.4 + React 18)
 
-The application currently has a functional full-stack foundation with the following areas implemented:
-- 45-day Java/Spring Boot curriculum
-- Learning dashboard
-- Day-wise progress tracking
-- DSA practice environment
-- Java code execution integration
-- AI mentor
-- AI code review
-- Mock technical/viva interviews
-- Resume/ATS analysis
-- LinkedIn optimization
-- GitHub analysis
-- Career analysis
-- Knowledge/RAG foundation
-- Analytics dashboard
-- Capstone project tracking
-- PostgreSQL/H2 persistence foundation
-- Spring Boot REST APIs
-- React + Vite frontend
-- Docker configuration
-- CI/CD foundation
-
-Several production-hardening features are intentionally listed under Roadmap because they still require deeper implementation.
+The platform is backed by a fully tested, database-persisted backend:
+- ✅ **Single Source of Truth**: All user learning progress (curriculum, DSA, study sessions, notes, viva attempts, capstone milestones) persists in PostgreSQL (Neon Cloud).
+- ✅ **Spring Security 6 & JWT**: Fail-fast environment secret enforcement, custom 401 Unauthorized / 403 Forbidden handlers, RBAC, and strict user-resource isolation.
+- ✅ **36 Automated Tests**: Comprehensive unit, integration, and security test suite (`mvnw test` passing 36/36).
+- ✅ **Interactive Demo Preview**: Dedicated read-only exploratory mode with banner and seamless sign-in transition (no fake user tokens or dual-truth localStorage).
+- ✅ **API Rate Limiting**: In-memory sliding window filter enforcing 10 req/min on `/api/auth/**` and 120 req/min on `/api/**` with HTTP 429 and `Retry-After`.
+- ✅ **Flyway Migrations**: Production-grade automated schema migrations (`V1__init_schema.sql`) with baseline on migrate.
+- ✅ **OpenAPI / Swagger 3.0**: Live interactive API documentation at `/swagger-ui/index.html` with BearerAuth JWT support.
+- ✅ **Curriculum Search**: Semantic keyword search with relevance scoring and verified curriculum citations (`/api/knowledge/search`).
+- ✅ **Live Code Execution**: Secure multi-language sandbox via Piston API (Java 17).
 
 ---
 
@@ -105,7 +92,7 @@ Instead of creating separate applications for studying, coding practice, intervi
 ### Database
 - PostgreSQL (Neon Cloud)
 - H2 for local development/testing
-- Flyway (planned production migration layer)
+- Flyway 12.4 (automated schema migrations with baseline-on-migrate)
 
 ### AI & LLM
 - Google Gemini 2.5 Flash
@@ -113,14 +100,14 @@ Instead of creating separate applications for studying, coding practice, intervi
 - AI code review
 - Resume & ATS analysis
 - Mock viva generation
-- Knowledge-grounded responses
+- Curriculum Knowledge Search (`/api/knowledge/search`) with verified citations
 
 ### Developer Tools & DevOps
 - Docker & Dockerfile
 - GitHub Actions CI/CD (`.github/workflows/build.yml`)
 - Git
 - Maven
-- Swagger / OpenAPI (planned)
+- SpringDoc OpenAPI 3.0 & Swagger UI (`/swagger-ui/index.html`)
 
 ### External Services
 - GitHub API
@@ -234,94 +221,116 @@ The analytics layer tracks real learning activity:
 
 ## 🔐 Security Architecture
 
-Security is an active development area.
+Security is implemented at both network filter and application levels:
 
-Target authentication architecture:
 ```
-Login → Credential Validation → Spring Security → JWT / Secure Session → Authenticated Request → Authorization → Controller
+Request → RateLimitingFilter (Sliding Window HTTP 429)
+           ↓
+       JwtAuthenticationFilter (Bearer token validation)
+           ↓
+       SecurityFilterChain (CORS + CSRF disabled + Stateless)
+           ↓ (Exception: AuthenticationEntryPoint → 401 JSON)
+           ↓ (Exception: AccessDeniedHandler → 403 JSON)
+       Controller (Authenticated Principal / Role-based access)
+           ↓
+       Service Layer (User-isolation verification: record.userId == principal.userId)
 ```
 
-Planned/ongoing security improvements:
-- Spring Security 6
-- Secure authentication & BCrypt password hashing
-- JWT/session-based authentication
-- Role-based access control (RBAC)
-- Protected REST endpoints
-- Request validation & rate limiting
-- Secure CORS configuration
+Key security mechanisms implemented:
+- **Fail-Fast Secret Validation**: Backend will refuse to boot (`IllegalStateException`) if `JWT_SECRET` is unset or less than 256 bits (32 bytes). No insecure fallback keys in production.
+- **Explicit 401 vs 403 JSON Responses**: Missing or invalid tokens return standard RFC-compliant HTTP 401 Unauthorized JSON; insufficient privileges return HTTP 403 Forbidden JSON.
+- **Sliding-Window IP Rate Limiter**: `RateLimitingFilter` limits sensitive auth endpoints (`/api/auth/**`) to 10 req/min and general API endpoints to 120 req/min, emitting `Retry-After: 60` headers on HTTP 429.
+- **User-Resource Isolation**: All data queries and mutations resolve the caller's identity via Spring Security's `Authentication.getName()` / `User.getId()`. Users cannot view or modify another user's progress, DSA submissions, notes, or viva attempts.
+- **CORS Protection**: Restricted strictly to authorized origins (`FRONTEND_URL` environment variable, Vercel preview domains, and localhost).
 
 ---
 
 ## 🗄️ Database Design
 
-The database architecture is being expanded from basic user/progress persistence toward a complete learning data model.
+The persistence layer is backed by PostgreSQL (Neon Cloud) in production and H2 during isolated testing, managed via Flyway automated migrations:
 
-Target model:
 ```
-User
- ├── DayProgress
- ├── DsaSubmission
- ├── StudySession
- ├── Note
- ├── VivaAttempt
- ├── ProjectMilestone
- ├── ChatSession
- └── CareerAnalysis
+User (users)
+ ├── DayProgress (day_progress)
+ ├── DsaSubmission (dsa_submissions)
+ ├── StudySession (study_sessions)
+ ├── Note (notes)
+ ├── VivaAttempt (viva_attempts)
+ ├── ProjectMilestone (project_milestones)
+ ├── ChatSession (chat_sessions)
+ └── CareerAnalysis (career_analyses)
 ```
 
-Example schema:
-```sql
-users (id, username, email, password_hash, role, created_at)
-day_progress (id, user_id, day_number, completed, completed_at)
-dsa_submissions (id, user_id, problem_id, language, code, status, submitted_at)
-```
+Schema migration script:
+- `backend/src/main/resources/db/migration/V1__init_schema.sql` initializes all relational tables, foreign key constraints (`ON DELETE CASCADE`), and performance indexes on `user_id` and timestamps.
 
 ---
 
 ## 🧱 Backend Architecture
 
-The backend follows a layered Spring Boot architecture:
+The backend follows a clean layered Spring Boot architecture:
 ```
-Controller → Service → Repository → Database
+Controller (REST Endpoints & Validation)
+    ↓
+Service Layer (Business Logic & User Ownership Checks)
+    ↓
+Repository Layer (Spring Data JPA / Custom JPQL Queries)
+    ↓
+Database (PostgreSQL / Neon Cloud)
 ```
-Supporting layers: DTO, Mapper, Validation, Security, Exception Handler, Configuration, and Integration Services.
+Supporting modules:
+- `security/`: `JwtUtil`, `JwtAuthenticationFilter`, `RateLimitingFilter`, `CustomUserDetailsService`
+- `exception/`: Global `@RestControllerAdvice` mapping validation and domain exceptions to standardized JSON error envelopes.
+- `dto/`: Request/Response contracts separating API contracts from JPA entity lifecycles.
+- `config/`: `SecurityConfig`, `OpenApiConfig`, `WebConfig`.
 
 ---
 
 ## 🧪 Testing Strategy
 
-Target testing structure:
-- **Unit Tests**: Services, Business Rules, Utilities
-- **Integration Tests**: REST APIs, Database, Authentication
-- **Security Tests**: Unauthorized access, User isolation, Role permissions
+The backend includes a comprehensive automated test suite consisting of **36 unit and integration tests**:
+
+- **Security & Authorization Tests** (`SecurityIntegrationTest` — 8 tests):
+  - 401 Unauthorized on unauthenticated requests to protected endpoints.
+  - 403 Forbidden vs 200 OK on role-restricted endpoints (`ROLE_ADMIN` vs `ROLE_USER`).
+  - Strict user-isolation tests: verifying User B cannot access User A's private study progress.
+- **Rate Limiting Tests** (`RateLimitingFilterTest` — 5 tests):
+  - Sliding-window throughput, burst limits, and HTTP 429 rejection on auth endpoints.
+- **JWT Cryptography Tests** (`JwtUtilTest` — 3 tests):
+  - Fail-fast validation on empty or weak (<32 bytes) keys, token generation, and signature verification.
+- **Domain Service Tests** (19 tests):
+  - `DayProgressServiceTest`, `DsaSubmissionServiceTest`, `StudySessionServiceTest`, `UserServiceTest`, `AnalyticsServiceTest`, `KnowledgeSearchServiceTest`.
+- **Application Context Test** (`DemoApplicationTests` — 1 test):
+  - Spring Boot context bootstrapping with full bean lifecycle verification.
+
+Run all tests locally:
+```bash
+cd backend
+./mvnw test
+```
 
 ---
 
-## 🚀 Production Hardening Roadmap
+## 🚀 Production Hardening Status
 
-### 🔴 High Priority
-- Implement JWT/secure session authentication
-- Protect all private REST endpoints
-- Implement user-resource authorization
-- Remove plaintext-password fallback
-- Remove hardcoded/mock implementations
-- Move important frontend state to PostgreSQL
-- Add comprehensive backend tests
-- Add global exception handling & DTO validation
+### ✅ Completed
+- [x] JWT + Spring Security 6 with fail-fast secret checks
+- [x] Explicit HTTP 401 (Unauthorized) and HTTP 403 (Forbidden) handlers
+- [x] Strict user-resource authorization and ownership isolation
+- [x] Full PostgreSQL persistence for curriculum, DSA, study sessions, notes, viva, and milestones
+- [x] Elimination of authenticated-state dual source of truth in `localStorage`
+- [x] Read-only interactive Demo Preview mode with clear onboarding flow
+- [x] IP sliding-window rate limiting (HTTP 429)
+- [x] SpringDoc OpenAPI 3.0 / Swagger UI documentation with BearerAuth
+- [x] Flyway automated schema migrations (`V1__init_schema.sql`)
+- [x] 36 automated unit, integration, and security tests passing
+- [x] Live GitHub integration and Piston sandbox code execution
 
-### 🟠 Medium Priority
-- Add Flyway database migrations
-- Implement PostgreSQL/pgvector RAG
-- Add Swagger/OpenAPI documentation
-- Add API rate limiting & token controls
-- Add health checks & Spring Boot Actuator
-- Improve Docker production configuration
-
-### 🟢 Feature Completion
-- Persist DSA submissions & study sessions
-- Persist interview attempts
-- Build database-backed leaderboard
-- Build real analytics aggregation
+### 🟡 Next Enhancements
+- [ ] Transition from local sliding-window to Redis distributed rate limiting
+- [ ] Migrate in-memory curriculum semantic keyword search to PostgreSQL `pgvector`
+- [ ] Add Spring Boot Actuator health & Prometheus metrics endpoints
+- [ ] Add client-side bookmarkable routing via React Router
 
 ---
 
