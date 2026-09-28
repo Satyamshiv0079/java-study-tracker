@@ -45,6 +45,26 @@ A full-stack, interview-grade placement preparation platform and developer-learn
 *Clean modal authentication dialog with BCrypt password hashing, signed JWT Bearer tokens, and seamless transition from demo preview to authenticated PostgreSQL persistence.*
 ![Auth Modal](docs/screenshots/auth_modal.png)
 
+### 6. AI Mock Technical Interview & Viva Assessment
+*Real-time timed oral technical interviews across Java Core, OOPs, Spring Boot, and System Design with instant rubric-based AI scoring and feedback.*
+![Mock Interview Viva](docs/screenshots/mock_interview_viva.png)
+
+### 7. Capstone Engineering Projects & Kanban Board
+*Production engineering workflow tracking real backend features across Ideas & Backlog, In-Progress Building, Testing & Hardening, and Completed & Live.*
+![Capstone Kanban](docs/screenshots/capstone_kanban.png)
+
+### 8. Placement Telemetry & Domain Analytics
+*Granular learning analytics with weekly Pomodoro study curves, placement readiness domain breakdown, and topic diagnostics.*
+![Analytics Readiness](docs/screenshots/analytics_readiness.png)
+
+### 9. Learner Benchmarks & Peer Rankings
+*Database-backed leaderboard ranking engineers by verified syllabus completion, LeetCode submissions, and study hours with active rank badges.*
+![Leaderboard Rankings](docs/screenshots/leaderboard_rankings.png)
+
+### 10. Career Hub & Backend Engineer Readiness
+*Holistic competency meter evaluating Java 17 fundamentals, Spring Boot, SQL, DSA, System Design, CI/CD, and technical viva communication.*
+![Career Hub](docs/screenshots/career_readiness_hub.png)
+
 ---
 
 ## 📌 Executive Architecture & Engineering Highlights
