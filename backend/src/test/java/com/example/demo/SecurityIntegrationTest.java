@@ -251,5 +251,36 @@ class SecurityIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.totalHours").value(0.0));
     }
+
+    @Test
+    @DisplayName("Actuator: /actuator/health is publicly accessible for cloud load balancer probes")
+    void publicActuatorHealthShouldSucceed() throws Exception {
+        mockMvc.perform(get("/actuator/health"))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.status").value("UP"));
+    }
+
+    @Test
+    @DisplayName("MCP Protocol: Standard JSON-RPC 2.0 tools/list returns compliant schema")
+    void mcpJsonRpcToolsListTest() throws Exception {
+        com.example.demo.model.User user = userRepository.save(com.example.demo.model.User.builder()
+                .username("mcpUser")
+                .email("mcp@test.com")
+                .password("hash123")
+                .role("ROLE_USER")
+                .build());
+
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
+
+        mockMvc.perform(post("/api/mcp/rpc")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"jsonrpc\":\"2.0\",\"id\":42,\"method\":\"tools/list\"}"))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.jsonrpc").value("2.0"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.id").value(42))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.result.tools").isArray());
+    }
 }
+
 

@@ -1,315 +1,342 @@
-# 🚀 CodeMentor — 45-Day Java & Spring Boot Placement Platform
+# 🚀 CodeMentor — Production-Grade 45-Day Java & Spring Boot Placement Platform
 
-A full-stack learning and placement-preparation platform designed to help developers build Java, Spring Boot, DSA, backend, AI, and interview skills through a structured 45-day curriculum.
+[![Java 17](https://img.shields.io/badge/Java-17-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
+[![Spring Boot 3.4](https://img.shields.io/badge/Spring_Boot-3.4-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Spring Security 6](https://img.shields.io/badge/Spring_Security-6-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white)](https://spring.io/projects/spring-security)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon_Cloud-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://neon.tech/)
+[![Flyway](https://img.shields.io/badge/Flyway-12.4-CC0202?style=for-the-badge&logo=flyway&logoColor=white)](https://flywaydb.org/)
+[![React 18](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![OpenAPI 3.0](https://img.shields.io/badge/OpenAPI-3.0_Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)](https://swagger.io/)
+[![Model Context Protocol](https://img.shields.io/badge/MCP-JSON--RPC_2.0-7C3AED?style=for-the-badge&logo=anthropic&logoColor=white)](https://modelcontextprotocol.io/)
+[![Automated Tests](https://img.shields.io/badge/Tests-43_Passing-brightgreen?style=for-the-badge&logo=junit5&logoColor=white)](https://junit.org/junit5/)
 
-CodeMentor combines a React frontend, Spring Boot backend, PostgreSQL, AI-powered learning tools, DSA practice, mock interviews, career analysis, and learning analytics into one platform.
-
-The project is being developed with a focus on real backend engineering, security, persistence, testing, and production-oriented architecture rather than simply adding UI features.
-
----
-
-## 📌 Project Status
-
-**Current status**: Hardened Production Prototype (Java 17 + Spring Boot 3.4 + React 18)
-
-The platform is backed by a fully tested, database-persisted backend:
-- ✅ **Single Source of Truth**: All user learning progress (curriculum, DSA, study sessions, notes, viva attempts, capstone milestones) persists in PostgreSQL (Neon Cloud).
-- ✅ **Spring Security 6 & JWT**: Fail-fast environment secret enforcement, custom 401 Unauthorized / 403 Forbidden handlers, RBAC, and strict user-resource isolation.
-- ✅ **36 Automated Tests**: Comprehensive unit, integration, and security test suite (`mvnw test` passing 36/36).
-- ✅ **Interactive Demo Preview**: Dedicated read-only exploratory mode with banner and seamless sign-in transition (no fake user tokens or dual-truth localStorage).
-- ✅ **API Rate Limiting**: In-memory sliding window filter enforcing 10 req/min on `/api/auth/**` and 120 req/min on `/api/**` with HTTP 429 and `Retry-After`.
-- ✅ **Flyway Migrations**: Production-grade automated schema migrations (`V1__init_schema.sql`) with baseline on migrate.
-- ✅ **OpenAPI / Swagger 3.0**: Live interactive API documentation at `/swagger-ui/index.html` with BearerAuth JWT support.
-- ✅ **Curriculum Search**: Semantic keyword search with relevance scoring and verified curriculum citations (`/api/knowledge/search`).
-- ✅ **Live Code Execution**: Secure multi-language sandbox via Piston API (Java 17).
+A full-stack, interview-grade placement preparation platform and developer-learning workspace engineered to take software engineers from core Java fundamentals to production Spring Boot microservices, high-frequency DSA, mock viva assessments, and real portfolio deployment.
 
 ---
 
-## 🎯 Goals
+## 🌐 Live Deployments & Documentation
 
-CodeMentor is designed around five primary goals:
-1. **Learn Java systematically**
-2. **Practice DSA consistently**
-3. **Build real backend engineering skills**
-4. **Use AI as a learning assistant**
-5. **Track measurable placement preparation progress**
-
-Instead of creating separate applications for studying, coding practice, interview preparation, and career preparation, CodeMentor brings these workflows into one platform.
+- **Web Application**: [https://java-study-tracker.vercel.app](https://java-study-tracker.vercel.app)
+- **Production REST API**: [https://java-study-tracker.onrender.com](https://java-study-tracker.onrender.com)
+- **Interactive Swagger UI**: [https://java-study-tracker.onrender.com/swagger-ui/index.html](https://java-study-tracker.onrender.com/swagger-ui/index.html)
+- **Cloud Health Probe (Actuator)**: [https://java-study-tracker.onrender.com/actuator/health](https://java-study-tracker.onrender.com/actuator/health)
 
 ---
 
-## 🏗️ Architecture
+## 📌 Executive Architecture & Engineering Highlights
 
-```
-                         ┌─────────────────────┐
-                         │      React UI       │
-                         │     Vite + CSS      │
-                         └──────────┬──────────┘
-                                    │
-                                    ▼
-                         ┌─────────────────────┐
-                         │   REST API Layer    │
-                         │     Spring Boot     │
-                         └──────────┬──────────┘
-                                    │
-              ┌─────────────────────┼─────────────────────┐
-              │                     │                     │
-              ▼                     ▼                     ▼
-      ┌──────────────┐      ┌──────────────┐      ┌──────────────┐
-      │ PostgreSQL   │      │ Spring       │      │ AI Services  │
-      │ / H2         │      │ Security     │      │ Gemini / APIs │
-      └──────────────┘      └──────────────┘      └──────────────┘
-              │                     │                     │
-              ▼                     ▼                     ▼
-      ┌──────────────┐      ┌──────────────┐      ┌──────────────┐
-      │ User Data    │      │ Auth / RBAC  │      │ AI Mentor    │
-      │ Progress     │      │ JWT          │      │ RAG          │
-      │ Analytics    │      │              │      │ Career Tools │
-      └──────────────┘      └──────────────┘      └──────────────┘
+CodeMentor is engineered with strict production standards, zero fake data generation, and resilient server-side truth:
+
+- ✅ **Single Source of Truth**: All student progress (curriculum completion, DSA submissions, study sessions, notes, viva attempts, capstone milestones) persists in PostgreSQL (Neon Cloud) backed by connection pool tuning (HikariCP).
+- ✅ **Spring Security 6 & Fail-Fast JWT**: Stateless JWT token authentication with HMAC-SHA256. Secret keys are strictly validated at boot time (>= 256 bits / 32 bytes) with zero insecure fallback defaults.
+- ✅ **Multi-Domain User Isolation (43 Automated Tests)**: Rigorous database ownership checks ensure User B can never read or mutate User A's progress, DSA code submissions, notes, or study hours.
+- ✅ **Optimistic UI with Automatic Rollbacks**: Frontend state updates render instantly for 60fps responsiveness; on any network or server failure, state automatically snapshots and rolls back with an actionable toast alert.
+- ✅ **Sliding-Window IP Rate Limiter**: Custom `RateLimitingFilter` enforces 10 req/min on authentication endpoints (`/api/users/**`) and 120 req/min across general APIs, returning HTTP 429 with RFC-compliant `Retry-After` headers.
+- ✅ **Model Context Protocol (MCP) JSON-RPC 2.0 Server**: Standard MCP protocol handler at `POST /api/mcp/rpc` (`tools/list` and `tools/call`) with JSON Schema input validation, plus developer REST endpoints (`/api/tools/**`).
+- ✅ **Live GitHub API Integration**: Dedicated `GitHubService` with in-memory TTL caching (15 minutes) and strict zero-fabrication error propagation (HTTP 429/503) instead of fake repository mocking.
+- ✅ **Spring Boot Actuator**: Dedicated `/actuator/health` and `/actuator/info` endpoints for cloud load balancer liveness probes, with protected management metrics.
+- ✅ **Flyway Database Versioning**: Automated schema migrations (`V1__init_schema.sql`, `V2__seed_curriculum.sql`) enforcing baseline-on-migrate and `ddl-auto: validate` in production.
+- ✅ **Client-Side Routing & Developer Theme**: React Router (`/`, `/demo`, `/login`, `/register`, `/app/*`), Linear/Notion-inspired dark palette (`#0B0F19`, `#111827`, accent `#7C3AED`), Command Palette (`Ctrl + K`), and Demo Guard Modal.
+
+---
+
+## 🏗️ System Architecture
+
+```mermaid
+flowchart TD
+    subgraph Client["Frontend Client (React 18 + Vite)"]
+        UI["Linear-Inspired UI\nDark Theme (#0B0F19)"]
+        Router["React Router v6\nBookmarkable URLs"]
+        CmdK["Command Palette\n(Ctrl + K Navigation)"]
+        State["useTrackerData Hook\nOptimistic UI + Auto Rollback"]
+        ApiClient["trackerApi / client.js\nBearer Token Injection"]
+    end
+
+    subgraph Gateway["Security & Filter Chain"]
+        RateLimit["RateLimitingFilter\nSliding Window (HTTP 429)"]
+        JwtFilter["JwtAuthenticationFilter\nBearer Token Extraction"]
+        SecConfig["SecurityFilterChain\nStateless + CORS + 401/403"]
+    end
+
+    subgraph Backend["Spring Boot 3.4 Core"]
+        Controllers["REST Controllers\nOpenAPI 3.0 Annotated"]
+        McpServer["Model Context Protocol (MCP)\nJSON-RPC 2.0 Server"]
+        Services["Domain Services Layer\nUser-Isolation Enforced"]
+        Actuator["Spring Boot Actuator\nHealth / Info / Metrics"]
+    end
+
+    subgraph DataStore["Persistence & Cloud Services"]
+        Flyway["Flyway Migrations\nSchema Versioning"]
+        DB[("PostgreSQL\nNeon Cloud Database")]
+        Piston["Piston Sandbox\nJava 17 JVM Engine"]
+        GitHub["GitHub REST API\n15-min TTL Cache"]
+        Gemini["Google Gemini 2.5\nAI Placement Mentor"]
+    end
+
+    UI --> Router
+    Router --> CmdK
+    CmdK --> State
+    State --> ApiClient
+    ApiClient -->|HTTP / REST / RPC| RateLimit
+
+    RateLimit --> JwtFilter
+    JwtFilter --> SecConfig
+    SecConfig --> Controllers
+    SecConfig --> McpServer
+    SecConfig --> Actuator
+
+    Controllers --> Services
+    McpServer --> Services
+    Services --> DB
+    Flyway -.->|Migrates| DB
+
+    Services --> Piston
+    Services --> GitHub
+    Services --> Gemini
 ```
 
 ---
 
-## 🧰 Technology Stack
+## 🔐 Security & User-Isolation Architecture
 
-### Frontend
-- React 18
-- Vite
-- JavaScript
-- Tailwind CSS
-- Responsive UI
-- REST API integration
+All endpoints enforce strict tenancy separation at the database and service layers. When a user performs an operation, their identity is extracted exclusively from the validated JWT token principal (`UserPrincipal.getId()`), never accepted as an unverified query or body parameter.
 
-### Backend
-- Java 17
-- Spring Boot 3.4
-- Spring Web
-- Spring Data JPA
-- Spring Security 6
-- Jakarta Validation
-- REST APIs
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Authenticated Client
+    participant Sec as SecurityFilterChain
+    participant Ctrl as Domain Controller
+    participant Svc as Domain Service
+    participant Repo as JPA Repository
+    participant DB as PostgreSQL (Neon)
 
-### Database
-- PostgreSQL (Neon Cloud)
-- H2 for local development/testing
-- Flyway 12.4 (automated schema migrations with baseline-on-migrate)
-
-### AI & LLM
-- Google Gemini 2.5 Flash
-- AI mentor & placement coach
-- AI code review
-- Resume & ATS analysis
-- Mock viva generation
-- Curriculum Knowledge Search (`/api/knowledge/search`) with verified citations
-
-### Developer Tools & DevOps
-- Docker & Dockerfile
-- GitHub Actions CI/CD (`.github/workflows/build.yml`)
-- Git
-- Maven
-- SpringDoc OpenAPI 3.0 & Swagger UI (`/swagger-ui/index.html`)
-
-### External Services
-- GitHub API
-- Piston code execution API (Java 17 runtime)
-- Gemini API (`v1beta`)
+    User->>Sec: POST /api/progress/me/{day} [Bearer JWT]
+    Sec->>Sec: Validate HMAC-SHA256 & Expiry
+    alt Token Invalid or Expired
+        Sec-->>User: 401 Unauthorized (JSON RFC 7807)
+    else Token Valid
+        Sec->>Ctrl: invoke(UserPrincipal principal, dayNumber)
+        Ctrl->>Svc: toggleDay(principal.getId(), dayNumber)
+        Svc->>Repo: findByUserIdAndDayNumber(principal.getId(), dayNumber)
+        Repo->>DB: SELECT * WHERE user_id = ? AND day_number = ?
+        DB-->>Repo: Record (owned by principal)
+        Repo->>DB: UPDATE / INSERT
+        DB-->>Repo: Saved entity
+        Repo-->>Svc: Saved entity
+        Svc-->>Ctrl: DayProgressDto
+        Ctrl-->>User: 200 OK (DayProgressDto)
+    end
+```
 
 ---
 
-## ✨ Core Features
+## 🤖 Model Context Protocol (MCP) & AI Tool Integration
 
-### 📚 45-Day Learning Curriculum
-A structured learning roadmap covering:
+CodeMentor implements a standard **Anthropic Model Context Protocol (MCP)** JSON-RPC 2.0 server at `POST /api/mcp/rpc`, giving external LLM agents (Claude, Gemini, Cursor) full programmatic context about a developer's learning journey.
 
-```
-Java → OOP → Collections → Exception Handling → Multithreading → SQL → Spring → Spring Boot → REST APIs → JPA/Hibernate → Security → Backend Development → Projects → Interview Prep
-```
+### Supported MCP Methods
 
-Each day contains learning objectives, resources, tasks, and progress tracking.
+1. **`tools/list`**: Returns descriptors and JSON Schemas for all registered tools:
+   - `get_user_progress`: Fetches syllabus completion counts and percentage.
+   - `get_curriculum_gaps`: Returns pending days and next recommended study topic.
+   - `get_github_summary`: Returns verified public repositories and syllabus alignment.
+   - `search_curriculum`: Semantic search over 45-day curriculum with verified citations.
 
-### 📊 Learning Dashboard
-The dashboard provides a central view of preparation progress tracking:
-- Completed days
-- Learning progress
-- DSA activity
-- Study sessions
-- Interview preparation
-- Project progress
-- Learning streaks
-- Performance metrics
+2. **`tools/call`**: Executes a tool by name with arguments and returns standard MCP content output:
 
-The long-term goal is to make these metrics fully database-backed and available across devices.
-
-### 💻 DSA Practice
-CodeMentor includes a coding environment designed for Java practice:
-- Java coding editor
-- Live code execution via Piston JVM engine
-- Output display & stderr diagnostics
-- Compilation/runtime feedback
-- AI-assisted $O(N)$ code review
-- Problem tracking
-
-The execution layer uses an external sandbox service rather than executing arbitrary Java code directly inside the Spring Boot server.
-
-### 🤖 AI Mentor
-The AI mentor acts as a learning assistant rather than replacing the learning process. It helps with:
-- Java concepts
-- Spring Boot architecture
-- DSA explanations
-- Debugging assistance
-- Interview preparation
-- Project questions
-- Learning guidance
-
-Interaction flow:
-```
-User Question → Context Detection → Relevant Knowledge → AI Model → Explanation
+```json
+// Example: POST /api/mcp/rpc
+{
+  "jsonrpc": "2.0",
+  "id": 101,
+  "method": "tools/call",
+  "params": {
+    "name": "get_user_progress",
+    "arguments": {}
+  }
+}
 ```
 
-### 🧠 Knowledge & RAG
-The project contains a knowledge-grounding foundation for providing AI responses based on the CodeMentor curriculum.
-
-Target architecture:
+Response:
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 101,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"userId\":1,\"completedDaysCount\":14,\"totalDays\":45,\"completionPercentage\":31}"
+      }
+    ]
+  }
+}
 ```
-Learning Documents → Document Chunking → Embeddings → Vector Database → Similarity Search → Relevant Context → Gemini → Grounded Response
-```
-The current implementation is still being evolved toward a complete vector-search architecture using PostgreSQL/pgvector.
-
-### 🎤 AI Mock Interviews
-The platform can generate technical interview questions based on the learner's preparation across Java, OOP, DSA, SQL, Spring Boot, REST APIs, and System Design.
-
-Features:
-- Technical questions
-- User answers
-- AI feedback & missing keywords
-- Performance scores (1-10)
-- Improvement suggestions
-
-### 📄 Resume & ATS Analysis
-The career module provides AI-assisted resume analysis evaluating:
-- Resume structure
-- Technical keywords
-- Job-description alignment
-- Skills & project descriptions
-- Achievement statements
-- ATS compatibility scoring
-
-### 💼 Career Tools
-The platform includes career-oriented utilities:
-- Resume analysis
-- ATS optimization
-- LinkedIn optimization
-- Job-description analysis
-- GitHub profile analysis
-- Skill-gap analysis
-
-### 🐙 GitHub Analysis
-The GitHub integration analyzes publicly available development activity:
-- Repository count
-- Primary programming languages
-- Commit activity & consistency
-- Repository distribution
-
-### 📈 Analytics
-The analytics layer tracks real learning activity:
-- **Study Time**: Daily, Weekly, Monthly trends
-- **DSA**: Problems Solved, Success Rate, Topic Performance
-- **Interview**: Attempts, Scores, Improvement
-- **Curriculum**: Completed Days, Completion Rate, Learning Streak
 
 ---
 
-## 🔐 Security Architecture
+## 📊 Complete REST API Surface
 
-Security is implemented at both network filter and application levels:
-
-```
-Request → RateLimitingFilter (Sliding Window HTTP 429)
-           ↓
-       JwtAuthenticationFilter (Bearer token validation)
-           ↓
-       SecurityFilterChain (CORS + CSRF disabled + Stateless)
-           ↓ (Exception: AuthenticationEntryPoint → 401 JSON)
-           ↓ (Exception: AccessDeniedHandler → 403 JSON)
-       Controller (Authenticated Principal / Role-based access)
-           ↓
-       Service Layer (User-isolation verification: record.userId == principal.userId)
-```
-
-Key security mechanisms implemented:
-- **Fail-Fast Secret Validation**: Backend will refuse to boot (`IllegalStateException`) if `JWT_SECRET` is unset or less than 256 bits (32 bytes). No insecure fallback keys in production.
-- **Explicit 401 vs 403 JSON Responses**: Missing or invalid tokens return standard RFC-compliant HTTP 401 Unauthorized JSON; insufficient privileges return HTTP 403 Forbidden JSON.
-- **Sliding-Window IP Rate Limiter**: `RateLimitingFilter` limits sensitive auth endpoints (`/api/auth/**`) to 10 req/min and general API endpoints to 120 req/min, emitting `Retry-After: 60` headers on HTTP 429.
-- **User-Resource Isolation**: All data queries and mutations resolve the caller's identity via Spring Security's `Authentication.getName()` / `User.getId()`. Users cannot view or modify another user's progress, DSA submissions, notes, or viva attempts.
-- **CORS Protection**: Restricted strictly to authorized origins (`FRONTEND_URL` environment variable, Vercel preview domains, and localhost).
-
----
-
-## 🗄️ Database Design
-
-The persistence layer is backed by PostgreSQL (Neon Cloud) in production and H2 during isolated testing, managed via Flyway automated migrations:
-
-```
-User (users)
- ├── DayProgress (day_progress)
- ├── DsaSubmission (dsa_submissions)
- ├── StudySession (study_sessions)
- ├── Note (notes)
- ├── VivaAttempt (viva_attempts)
- ├── ProjectMilestone (project_milestones)
- ├── ChatSession (chat_sessions)
- └── CareerAnalysis (career_analyses)
-```
-
-Schema migration script:
-- `backend/src/main/resources/db/migration/V1__init_schema.sql` initializes all relational tables, foreign key constraints (`ON DELETE CASCADE`), and performance indexes on `user_id` and timestamps.
+| Method | Endpoint | Access | Description |
+|:---|:---|:---|:---|
+| **POST** | `/api/users/register` | Public | Register new user account with BCrypt password hashing |
+| **POST** | `/api/users/login` | Public | Authenticate user credentials & issue JWT Bearer token |
+| **GET** | `/api/health` | Public | Lightweight health check status |
+| **GET** | `/actuator/health` | Public | Spring Boot Actuator cloud liveness / readiness probe |
+| **GET** | `/actuator/info` | Public | Application build and runtime info |
+| **GET** | `/actuator/metrics` | Admin | JVM memory, thread count, garbage collection metrics |
+| **GET** | `/api/progress/me` | User | Retrieve current user's 45-day curriculum completion list |
+| **POST** | `/api/progress/me/{dayNumber}` | User | Toggle completion status for specific day |
+| **GET** | `/api/dsa/me` | User | Fetch all DSA problem submissions, code, and statuses |
+| **GET** | `/api/dsa/me/{dayNumber}` | User | Fetch code and submission for a specific day |
+| **POST** | `/api/dsa/me` | User | Save or update DSA code submission and LeetCode link |
+| **POST** | `/api/dsa/me/{dayNumber}/toggle` | User | Toggle solved/unsolved status for day's DSA problem |
+| **GET** | `/api/study-sessions/me` | User | Fetch logged study sessions history |
+| **GET** | `/api/study-sessions/me/total-hours`| User | Retrieve aggregated study hours, minutes, and count |
+| **POST** | `/api/study-sessions/me` | User | Log a study session (Pomodoro or manual duration) |
+| **GET** | `/api/notes/me` | User | Fetch all user notes mapped by day number |
+| **GET** | `/api/notes/me/{dayNumber}` | User | Fetch note content for a specific day |
+| **POST** | `/api/notes/me/{dayNumber}` | User | Save or update note content for a specific day |
+| **GET** | `/api/viva/me` | User | Fetch all previous mock viva interview attempts |
+| **GET** | `/api/viva/me/summary` | User | Aggregated viva statistics (accuracy, score, attempts) |
+| **POST** | `/api/viva/me` | User | Record completed viva attempt with AI scoring breakdown |
+| **GET** | `/api/analytics/me` | User | Full learning telemetry, streak, and competency scores |
+| **GET** | `/api/leaderboard` | User | Global leaderboard ranked by days completed and study hours |
+| **GET** | `/api/projects/me` | User | Fetch Capstone engineering project milestone checklist |
+| **POST** | `/api/projects/me/{id}/toggle` | User | Toggle milestone status in capstone project |
+| **GET** | `/api/knowledge/search` | User | Semantic keyword search across syllabus with citations |
+| **POST** | `/api/knowledge` | Admin | Create new curriculum knowledge document |
+| **DELETE**| `/api/knowledge/{id}` | Admin | Delete curriculum knowledge document |
+| **GET** | `/api/tools/tools` | User | List all callable AI tools (REST alias) |
+| **POST** | `/api/tools/execute` | User | Direct REST AI tool invocation |
+| **POST** | `/api/mcp/rpc` | User | Anthropic Model Context Protocol (MCP) JSON-RPC 2.0 |
+| **POST** | `/api/tools/github/summary` | User | Live GitHub repository summary with 15-min TTL cache |
 
 ---
 
-## 🧱 Backend Architecture
+## 🧪 Automated Testing Strategy (43 Passing Tests)
 
-The backend follows a clean layered Spring Boot architecture:
+The backend features a comprehensive suite of **43 automated unit, integration, and security tests**:
+
+```bash
+[INFO] Results:
+[INFO] 
+[INFO] Tests run: 43, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS
 ```
-Controller (REST Endpoints & Validation)
-    ↓
-Service Layer (Business Logic & User Ownership Checks)
-    ↓
-Repository Layer (Spring Data JPA / Custom JPQL Queries)
-    ↓
-Database (PostgreSQL / Neon Cloud)
-```
-Supporting modules:
-- `security/`: `JwtUtil`, `JwtAuthenticationFilter`, `RateLimitingFilter`, `CustomUserDetailsService`
-- `exception/`: Global `@RestControllerAdvice` mapping validation and domain exceptions to standardized JSON error envelopes.
-- `dto/`: Request/Response contracts separating API contracts from JPA entity lifecycles.
-- `config/`: `SecurityConfig`, `OpenApiConfig`, `WebConfig`.
+
+### Test Suite Breakdown
+
+1. **Security, RBAC & Multi-Domain User Isolation** (`SecurityIntegrationTest` — 14 tests):
+   - `publicHealthCheckShouldSucceed`: Verifies `/api/health` is publicly accessible.
+   - `publicActuatorHealthShouldSucceed`: Verifies `/actuator/health` returns status `UP` without authentication.
+   - `protectedEndpointsRejectUnauthenticated`: Verifies 401 Unauthorized across `/api/progress/me`, `/api/dsa/me`, `/api/notes/me`, `/api/study-sessions/me`.
+   - `adminRoleBasedAccessControl`: Verifies 403 Forbidden for `ROLE_USER` vs 200 OK for `ROLE_ADMIN` on POST/DELETE `/api/knowledge`.
+   - `userIsolationProgressTest`: Verifies User B cannot see or toggle User A's `DayProgress`.
+   - `userIsolationDsaSubmissionsTest`: Verifies User B cannot access User A's solved DSA code.
+   - `userIsolationNotesTest`: Verifies User B cannot view User A's confidential technical notes.
+   - `userIsolationStudyHoursTest`: Verifies User B's study hours remain `0.0` when User A logs sessions.
+   - `mcpJsonRpcToolsListTest`: Verifies `POST /api/mcp/rpc` returns compliant JSON-RPC 2.0 tool schemas.
+
+2. **Live GitHub Service & Zero Fake Data** (`GitHubServiceTest` — 1 test):
+   - Verifies live GitHub API querying, TTL caching, and zero fabrication on missing users or rate limits.
+
+3. **Rate Limiting & DoS Defense** (`RateLimitingFilterTest` — 5 tests):
+   - Sliding-window throughput, burst capacity, and HTTP 429 rejection on auth endpoints.
+
+4. **Cryptographic JWT Tests** (`JwtUtilTest` — 3 tests):
+   - Fail-fast enforcement on keys < 256 bits, signature validation, and claims parsing.
+
+5. **Domain Services Unit Suite** (19 tests):
+   - `UserServiceTest` (7 tests): Registration uniqueness, password hashing, and login validation.
+   - `DayProgressServiceTest` (3 tests): Progress calculation, toggling, and streak tracking.
+   - `DsaSubmissionServiceTest` (3 tests): Problem submission, update idempotency, and status toggle.
+   - `KnowledgeSearchServiceTest` (3 tests): Semantic ranking, citation extraction, and token matches.
+   - `StudySessionServiceTest` (2 tests): Aggregate time calculation and session duration bounds.
+   - `AnalyticsServiceTest` (1 test): Full diagnostic calculations across multiple domain models.
+
+6. **Application Bootstrapping** (`DemoApplicationTests` — 1 test):
+   - Verifies complete Spring Boot context loading, bean wiring, and database connection.
 
 ---
 
-## 🧪 Testing Strategy
+## 🗄️ Database Entity Schema (PostgreSQL)
 
-The backend includes a comprehensive automated test suite consisting of **41 unit and integration tests**:
+```
+users
+ ├── id (BIGSERIAL PRIMARY KEY)
+ ├── username (VARCHAR UNIQUE NOT NULL)
+ ├── email (VARCHAR UNIQUE NOT NULL)
+ ├── password (VARCHAR NOT NULL - BCrypt)
+ ├── role (VARCHAR NOT NULL - ROLE_USER / ROLE_ADMIN)
+ └── created_at (TIMESTAMP)
+      │
+      ├── day_progress (user_id FK, day_number INT, completed BOOLEAN, completed_at TIMESTAMP)
+      ├── dsa_submissions (user_id FK, day_number INT, problem_title VARCHAR, code TEXT, completed BOOLEAN)
+      ├── study_sessions (user_id FK, duration_minutes INT, mode VARCHAR, created_at TIMESTAMP)
+      ├── user_notes (user_id FK, day_number INT, content TEXT, updated_at TIMESTAMP)
+      ├── viva_attempts (user_id FK, topic VARCHAR, score INT, feedback TEXT, created_at TIMESTAMP)
+      └── project_milestones (user_id FK, milestone_id INT, title VARCHAR, completed BOOLEAN)
 
-- **Security, Authorization & User-Isolation Tests** (`SecurityIntegrationTest` — 12 tests):
-  - 401 Unauthorized on unauthenticated requests to protected endpoints.
-  - 403 Forbidden vs 200 OK on role-restricted endpoints (`ROLE_ADMIN` vs `ROLE_USER`).
-  - Strict multi-domain user isolation:
-    - User B cannot see or mutate User A's `DayProgress`.
-    - User B cannot see User A's solved `DsaSubmission` records.
-    - User B cannot access or overwrite User A's private study `Note` records.
-    - User B's `StudySession` hours remain 0.0 when User A logs study sessions.
-- **GitHub Live API & Fallback Test** (`GitHubServiceTest` — 1 test):
-  - Verified live API querying with in-memory TTL caching and strict zero-fabrication guarantees on rate limiting.
-- **Rate Limiting Tests** (`RateLimitingFilterTest` — 5 tests):
-  - Sliding-window throughput, burst limits, and HTTP 429 rejection on auth endpoints.
-- **JWT Cryptography Tests** (`JwtUtilTest` — 3 tests):
-  - Fail-fast validation on empty or weak (<32 bytes) keys, token generation, and signature verification.
-- **Domain Service Tests** (19 tests):
-  - `DayProgressServiceTest`, `DsaSubmissionServiceTest`, `StudySessionServiceTest`, `UserServiceTest`, `AnalyticsServiceTest`, `KnowledgeSearchServiceTest`.
-- **Application Context Test** (`DemoApplicationTests` — 1 test):
-  - Spring Boot context bootstrapping with full bean lifecycle verification.
+knowledge_documents (id BIGSERIAL, title VARCHAR, category VARCHAR, day_number INT, content TEXT)
+```
 
-Run all tests locally:
+Schema changes are versioned via Flyway:
+- `backend/src/main/resources/db/migration/V1__init_schema.sql`
+- `backend/src/main/resources/db/migration/V2__seed_curriculum.sql`
+
+---
+
+## 💻 Local Development Setup
+
+### Prerequisites
+
+- **Java 17+** (JDK)
+- **Node.js 20+** & **npm**
+- **Maven 3.9+** (or use included `./mvnw`)
+- **PostgreSQL** (or use in-memory H2 default for local dev)
+
+### 1. Clone Repository
+
+```bash
+git clone https://github.com/Satyamshiv0079/java-study-tracker.git
+cd java-study-tracker
+```
+
+### 2. Configure Backend (`application.yml`)
+
+The backend automatically runs on H2 in-memory mode if no PostgreSQL credentials are provided. For PostgreSQL:
+
+```bash
+export SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5432/codementor"
+export SPRING_DATASOURCE_USERNAME="postgres"
+export SPRING_DATASOURCE_PASSWORD="your_password"
+export JWT_SECRET="YourSuperSecretKeyAtLeast32BytesLongForHS256Validation!"
+export GITHUB_TOKEN="ghp_your_optional_github_token_for_5000_rate_limit"
+```
+
+### 3. Start Backend Server
+
+```bash
+cd backend
+./mvnw clean spring-boot:run
+# Backend runs on http://localhost:8080
+# Swagger UI available at http://localhost:8080/swagger-ui/index.html
+# Actuator Health available at http://localhost:8080/actuator/health
+```
+
+### 4. Start Frontend Client
+
+```bash
+# In project root:
+npm install
+npm run dev
+# Frontend runs on http://localhost:5173
+```
+
+### 5. Run Test Suite
+
 ```bash
 cd backend
 ./mvnw test
@@ -317,163 +344,32 @@ cd backend
 
 ---
 
-## 🚀 Production Hardening Status
+## 🚢 Docker Deployment
 
-### ✅ Completed
-- [x] JWT + Spring Security 6 with fail-fast secret checks
-- [x] Explicit HTTP 401 (Unauthorized) and HTTP 403 (Forbidden) handlers
-- [x] Strict user-resource authorization and multi-domain ownership isolation (Progress, DSA, Notes, Sessions)
-- [x] Full PostgreSQL persistence for curriculum, DSA, study sessions, notes, viva, and milestones
-- [x] Elimination of authenticated-state dual source of truth in `localStorage`
-- [x] Read-only interactive Demo Preview mode (`/demo`) with clear onboarding flow
-- [x] IP sliding-window rate limiting (HTTP 429 with `Retry-After`)
-- [x] SpringDoc OpenAPI 3.0 / Swagger UI documentation with BearerAuth
-- [x] Flyway automated schema migrations (`V1__init_schema.sql`)
-- [x] 41 automated unit, integration, and security tests passing
-- [x] Live GitHub integration via dedicated `GitHubService` with in-memory TTL caching and zero fake data
-- [x] Client-side optimistic updates with automatic rollback on network/server errors
-- [x] Modular frontend architecture (`src/api/`, `src/hooks/useTrackerData.js`)
-- [x] Tightened CORS configuration with explicit allowed and exposed headers
-- [x] Production profile (`application-prod.yml`) with Hikari pool tuning and `ddl-auto: validate`
+Build and run the entire backend containerized:
 
-### 🟡 Next Enhancements
-- [ ] Transition from local sliding-window to Redis distributed rate limiting
-- [ ] Migrate in-memory curriculum semantic keyword search to PostgreSQL `pgvector`
-- [ ] Add Spring Boot Actuator health & Prometheus metrics endpoints
-- [ ] Add client-side bookmarkable routing via React Router
-
----
-
-## 🛑 What Will Not Be Added Just for Feature Count
-
-The project intentionally prioritizes depth over feature quantity. Planned development avoids adding:
-- Unnecessary AI chatbots or social feeds
-- UI-only notification systems or decorative animations
-- Payment systems without a real use case
-- Unnecessary microservices without architectural need
-
-The goal is to make existing functionality secure, persistent, testable, scalable, and defensible in technical interviews.
-
----
-
-## 🔍 Known Limitations
-
-The current version should not be considered fully production-ready. Known areas being improved:
-- Authentication/authorization hardening
-- Complete PostgreSQL persistence
-- Database migrations & testing coverage
-- Vector retrieval refinement
-- Real leaderboard data consolidation
-
----
-
-## 🧹 Implementation Consistency Checklist
-
-- README Spring Boot version matches `pom.xml` (3.4)
-- README React version matches `package.json` (18)
-- UI Java version matches actual execution runtime (Java 17)
-- Database documentation matches active Spring profiles
-- AI Code Review contains no mock fallback
-- Production claims are backed by implementation
-
----
-
-## 🛠️ Recommended Engineering Order
-
-1. JWT + Spring Security
-2. User-resource authorization
-3. PostgreSQL persistence
-4. DTO + validation + exception handling
-5. Unit + integration + security tests
-6. Remove mock/hardcoded implementations
-7. Flyway migrations
-8. Real pgvector RAG
-9. Swagger + rate limiting
-10. Production hardening
-
----
-
-## 📁 Recommended GitHub Structure
-
-```
-java-study-tracker/
-│
-├── src/                      # React Frontend Source
-├── api/                      # Serverless AI & Integration Handlers
-├── backend/                  # Spring Boot 3.4 REST API
-│   └── src/main/java/com/example/demo/
-├── docs/                     # Screenshot Assets & Documentation
-├── Dockerfile                # Backend Production Containerization
-├── docker-compose.yml        # Docker Multi-Container Compose
-└── README.md                 # System Architecture & Guide
-```
-
----
-
-## ⚙️ Local Development
-
-### Prerequisites
-- Java 17+
-- Node.js 20+
-- Maven
-- PostgreSQL / H2
-- Git
-
-### Clone
 ```bash
-git clone https://github.com/Satyamshiv0079/java-study-tracker.git
-cd java-study-tracker
-```
+# Build Docker image
+docker build -t codementor-backend ./backend
 
-### Start Backend
-```bash
-cd backend
-mvn spring-boot:run
-# Backend runs at: http://localhost:8080
-```
-
-### Start Frontend
-```bash
-npm install
-npm run dev
-# Frontend runs at: http://localhost:5173
+# Run container with environment variables
+docker run -p 8080:8080 \
+  -e SPRING_DATASOURCE_URL="jdbc:postgresql://host.docker.internal:5432/codementor" \
+  -e SPRING_DATASOURCE_USERNAME="postgres" \
+  -e SPRING_DATASOURCE_PASSWORD="password" \
+  -e JWT_SECRET="ProductionSecretKeyAtLeast32BytesForHS256Validation!" \
+  codementor-backend
 ```
 
 ---
 
-## 🔑 Environment Variables
-
-```env
-DATABASE_URL=
-DATABASE_USERNAME=
-DATABASE_PASSWORD=
-
-GEMINI_API_KEY=
-GITHUB_TOKEN=
-JWT_SECRET=
-```
-
----
-
-## 🧠 Engineering Principles
-
-1. **Build before adding features**: Hardening existing modules over introducing raw feature count.
-2. **Backend is the source of truth**: Persisting data server-side rather than relying strictly on browser state.
-3. **Security by design**: Authentication, authorization, and validation built into API design.
-4. **AI assists learning**: Providing structured feedback rather than raw answer generation.
-5. **Measurable progress**: Telemetry tracking growth over time.
-
----
-
-## 👨‍💻 Author
+## 👨‍💻 Engineering Author
 
 **Satyam Shiv**  
 *Computer Science & Engineering*  
-- **GitHub**: [Satyamshiv0079](https://github.com/Satyamshiv0079)  
+- **GitHub**: [@Satyamshiv0079](https://github.com/Satyamshiv0079)  
 - **LinkedIn**: [Satyam Shiv](https://www.linkedin.com/in/satyamshiv0079/)
 
 ---
 
-## ⭐ Project Philosophy
-
-> *Don't build a project that only looks impressive. Build one that can survive an engineer's questions.*
+> *"Don't build a project that only looks impressive in screenshots. Build one that defends itself line by line in a technical interview."*

@@ -54,11 +54,13 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/users/login", "/api/users/register").permitAll()
                 .requestMatchers("/api/health", "/h2-console/**").permitAll()
+                .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
 
                 // --- ADMIN-only endpoints ---
                 .requestMatchers(HttpMethod.POST, "/api/knowledge/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/knowledge/**").hasRole("ADMIN")
+                .requestMatchers("/actuator/**").hasRole("ADMIN")
 
                 // --- AUTHENTICATED endpoints (JWT required) ---
                 .requestMatchers("/api/**").authenticated()

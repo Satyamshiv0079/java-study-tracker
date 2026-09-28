@@ -4,6 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -20,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Protects public endpoints (like login/register) against brute-force and credential stuffing,
  * and defends general API endpoints against denial-of-service abuse.
  */
+@Slf4j
 @Component
 public class RateLimitingFilter extends OncePerRequestFilter {
 
@@ -56,11 +58,13 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
         if (isAuthEndpoint(path)) {
             if (!isAllowed(authRequestLog, clientIp, AUTH_LIMIT, now)) {
+                log.warn("Rate limit tripped for auth endpoint {} from IP {}", path, clientIp);
                 rejectWithRateLimit(response, calculateRetryAfter(authRequestLog, clientIp, now));
                 return;
             }
         } else if (path.startsWith("/api/")) {
             if (!isAllowed(generalRequestLog, clientIp, GENERAL_LIMIT, now)) {
+                log.warn("Rate limit tripped for general API endpoint {} from IP {}", path, clientIp);
                 rejectWithRateLimit(response, calculateRetryAfter(generalRequestLog, clientIp, now));
                 return;
             }
