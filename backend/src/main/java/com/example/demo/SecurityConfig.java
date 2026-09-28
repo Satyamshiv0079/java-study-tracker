@@ -27,6 +27,9 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final com.example.demo.security.RateLimitingFilter rateLimitingFilter;
 
+    @org.springframework.beans.factory.annotation.Value("${FRONTEND_URL:https://java-study-tracker.vercel.app}")
+    private String frontendUrl;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -34,6 +37,18 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType(org.springframework.http.MediaType.APPLICATION_JSON_VALUE);
+                    response.getWriter().write("{\"status\":401,\"error\":\"Unauthorized\",\"message\":\"Authentication token is missing, invalid, or expired. Please login.\"}");
+                })
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    response.setStatus(jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType(org.springframework.http.MediaType.APPLICATION_JSON_VALUE);
+                    response.getWriter().write("{\"status\":403,\"error\":\"Forbidden\",\"message\":\"Access denied: insufficient permissions to access this resource.\"}");
+                })
+            )
             .authorizeHttpRequests(auth -> auth
                 // --- PUBLIC endpoints (no JWT required) ---
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
@@ -65,7 +80,8 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOriginPatterns(List.of(
-            "https://*.vercel.app",
+            frontendUrl,
+            "https://java-study-tracker*.vercel.app",
             "http://localhost:*",
             "http://127.0.0.1:*"
         ));

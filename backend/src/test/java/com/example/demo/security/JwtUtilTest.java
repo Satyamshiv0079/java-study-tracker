@@ -38,19 +38,10 @@ class JwtUtilTest {
     }
 
     @Test
-    @DisplayName("Should fallback safely if secret is missing or too short without throwing")
-    void shouldFallbackIfSecretTooShort() {
-        JwtUtil fallback1 = new JwtUtil("short");
-        assertNotNull(fallback1);
-        String token1 = fallback1.generateToken(1L, "satyam", "ROLE_USER");
-        assertTrue(fallback1.validateToken(token1));
-
-        JwtUtil fallback2 = new JwtUtil("");
-        assertNotNull(fallback2);
-        assertTrue(fallback2.validateToken(token1));
-
-        JwtUtil fallback3 = new JwtUtil(null);
-        assertNotNull(fallback3);
-        assertTrue(fallback3.validateToken(token1));
+    @DisplayName("Should strictly fail initialization if secret is missing or too short (fail-fast)")
+    void shouldFailInitializationIfSecretIsMissingOrTooShort() {
+        assertThrows(IllegalStateException.class, () -> new JwtUtil("short"));
+        assertThrows(IllegalStateException.class, () -> new JwtUtil(""));
+        assertThrows(IllegalStateException.class, () -> new JwtUtil(null));
     }
 }

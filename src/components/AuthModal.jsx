@@ -23,7 +23,7 @@ export default function AuthModal({ isOpen, onClose, onAuthSuccess }) {
     setIsSubmitting(true);
 
     try {
-      const API_BASE = 'https://java-study-tracker.onrender.com';
+      const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://java-study-tracker.onrender.com';
       const endpoint = isLogin ? `${API_BASE}/api/users/login` : `${API_BASE}/api/users/register`;
       const payload = isLogin ? { username, password } : { username, email, password };
 

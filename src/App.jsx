@@ -15,11 +15,12 @@ import AuthModal from './components/AuthModal';
 import ProfileModal from './components/ProfileModal';
 import { getDaySyllabus } from './data/syllabus';
 
-const API_BASE = 'https://java-study-tracker.onrender.com';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://java-study-tracker.onrender.com';
 
 export default function App() {
   const [storageReady, setStorageReady] = useState(false);
   const [storageError, setStorageError] = useState(null);
+  const [isDemoMode, setIsDemoMode] = useState(false);
 
   const [currentUser, setCurrentUser] = useState(() => {
     const saved = localStorage.getItem('studyTrackerUser');
@@ -28,7 +29,7 @@ export default function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
-  // Protected tabs require authentication
+  // Protected tabs require authentication unless in Demo Preview mode
   const protectedTabs = ['dashboard', 'syllabus', 'coding', 'interview', 'project', 'analytics', 'leaderboard', 'career', 'mentor'];
 
   const [currentTab, setCurrentTabRaw] = useState(() => {
@@ -36,13 +37,24 @@ export default function App() {
     return saved ? 'dashboard' : 'landing';
   });
 
-  // Guard: if user tries to navigate to a protected tab without auth, show login modal
+  // Guard: if user tries to navigate to a protected tab without auth or demo preview, prompt login modal
   const setCurrentTab = (tab) => {
-    if (protectedTabs.includes(tab) && !currentUser) {
+    if (protectedTabs.includes(tab) && !currentUser && !isDemoMode) {
       setIsAuthModalOpen(true);
       return;
     }
     setCurrentTabRaw(tab);
+  };
+
+  const handleExploreDemo = () => {
+    setIsDemoMode(true);
+    setCompletedDays([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]);
+    setCompletedDsa([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28]);
+    setStudyHours(94.5);
+    setVivaScore({ correct: 21, total: 25 });
+    setProjectMilestones(prev => prev.map((m, i) => ({ ...m, done: i < 6 })));
+    setStorageError(null);
+    setCurrentTabRaw('dashboard');
   };
 
   const [activeDay, setActiveDay] = useState(1);
@@ -84,21 +96,10 @@ export default function App() {
 
   const dayData = getDaySyllabus(activeDay);
 
-  // --- Load persisted state from Java API and LocalStorage on mount ---
+  // --- Load persisted state from PostgreSQL API on mount ---
   useEffect(() => {
     async function loadData(retryCount = 0) {
-      // Only fetch from backend if user is authenticated with a JWT token
       if (!currentUser || !currentUser.token) {
-        // Load local-only data for demo mode
-        const localData = localStorage.getItem('studyTrackerData');
-        if (localData) {
-          const p = JSON.parse(localData);
-          if (p.completedDsa) setCompletedDsa(p.completedDsa);
-          if (typeof p.studyHours === 'number') setStudyHours(p.studyHours);
-          if (p.notes) { setNotes(p.notes); setActiveNote(p.notes[1] || ''); }
-          if (p.vivaScore) setVivaScore(p.vivaScore);
-          if (p.projectMilestones) setProjectMilestones(p.projectMilestones);
-        }
         setStorageReady(true);
         return;
       }
@@ -108,6 +109,7 @@ export default function App() {
 
       try {
         const headers = { 'Authorization': `Bearer ${currentUser.token}` };
+        let hasSyncIssue = false;
 
         // 1. Day Progress from PostgreSQL
         const progressRes = await fetch(`${API_BASE}/api/progress/me`, {
@@ -115,10 +117,10 @@ export default function App() {
           signal: controller.signal
         });
         clearTimeout(timeoutId);
+
         if (progressRes.ok) {
           const progressList = await progressRes.json();
           setCompletedDays(progressList.filter(p => p.completed).map(p => p.dayNumber));
-          setStorageError('');
         } else if (progressRes.status === 401 || progressRes.status === 403) {
           // Token expired or invalid — force re-login
           setCurrentUser(null);
@@ -127,6 +129,8 @@ export default function App() {
           setIsAuthModalOpen(true);
           setStorageReady(true);
           return;
+        } else {
+          hasSyncIssue = true;
         }
 
         // 2. DSA Submissions from PostgreSQL
@@ -135,9 +139,11 @@ export default function App() {
           if (dsaRes.ok) {
             const dsaList = await dsaRes.json();
             setCompletedDsa(dsaList.filter(d => d.completed).map(d => d.dayNumber));
+          } else {
+            hasSyncIssue = true;
           }
-        } catch (e) {
-          console.warn("DSA fetch fallback to local:", e);
+        } catch {
+          hasSyncIssue = true;
         }
 
         // 3. Study Hours from PostgreSQL
@@ -148,9 +154,11 @@ export default function App() {
             if (typeof hoursData.totalHours === 'number') {
               setStudyHours(hoursData.totalHours);
             }
+          } else {
+            hasSyncIssue = true;
           }
-        } catch (e) {
-          console.warn("Study hours fetch fallback:", e);
+        } catch {
+          hasSyncIssue = true;
         }
 
         // 4. Notes from PostgreSQL
@@ -162,9 +170,11 @@ export default function App() {
               setNotes(notesMap);
               setActiveNote(notesMap[activeDay] || '');
             }
+          } else {
+            hasSyncIssue = true;
           }
-        } catch (e) {
-          console.warn("Notes fetch fallback:", e);
+        } catch {
+          hasSyncIssue = true;
         }
 
         // 5. Viva Scores from PostgreSQL
@@ -176,9 +186,11 @@ export default function App() {
               correct: vivaData.passedAttempts || 0,
               total: vivaData.totalAttempts || 0
             });
+          } else {
+            hasSyncIssue = true;
           }
-        } catch (e) {
-          console.warn("Viva fetch fallback:", e);
+        } catch {
+          hasSyncIssue = true;
         }
 
         // 6. Capstone Milestones from PostgreSQL
@@ -192,51 +204,35 @@ export default function App() {
                 return match ? { ...m, done: match.completed } : m;
               }));
             }
+          } else {
+            hasSyncIssue = true;
           }
-        } catch (e) {
-          console.warn("Projects fetch fallback:", e);
+        } catch {
+          hasSyncIssue = true;
         }
 
+        setStorageError(hasSyncIssue ? "Notice: Some progress could not be fetched from the database." : null);
+
       } catch (err) {
-        console.warn("Load attempt error:", err);
+        console.error("Backend load error:", err);
         if (retryCount < 1) {
           setTimeout(() => loadData(retryCount + 1), 3000);
           return;
         }
+        setStorageError("Unable to connect to the backend database service. Please retry.");
       } finally {
         setStorageReady(true);
       }
     }
     loadData();
 
-    // Keep-alive ping uses the public /api/health endpoint (no auth needed)
+    // Keep-alive ping uses the public /api/health endpoint
     const pingInterval = setInterval(() => {
       fetch(`${API_BASE}/api/health`).catch(() => {});
     }, 10 * 60 * 1000);
 
     return () => clearInterval(pingInterval);
   }, [currentUser]);
-
-  // --- Persist non-day progress to LocalStorage whenever it changes ---
-  useEffect(() => {
-    if (!storageReady) return;
-    const saveTimer = setTimeout(() => {
-      try {
-        const payload = { 
-          completedDsa, 
-          studyHours, 
-          notes, 
-          vivaScore, 
-          projectMilestones,
-          chatMessages
-        };
-        localStorage.setItem('studyTrackerData', JSON.stringify(payload));
-      } catch (e) {
-        console.error("Local save error:", e);
-      }
-    }, 1000); // Debounce saves by 1 second to minimize writes
-    return () => clearTimeout(saveTimer);
-  }, [storageReady, completedDsa, studyHours, notes, vivaScore, projectMilestones, chatMessages]);
 
   useEffect(() => {
     if (dayData) setSandboxCode(dayData.dsa.starterCode);
@@ -477,9 +473,42 @@ export default function App() {
       <Navigation currentTab={currentTab} setCurrentTab={setCurrentTab} />
 
       <main className="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-6 overflow-y-auto custom-scrollbar">
+        {/* Interactive Demo Mode Notice Banner */}
+        {isDemoMode && !currentUser && (
+          <div className="mb-6 p-4 bg-gradient-to-r from-indigo-950 via-slate-900 to-purple-950 border border-indigo-700/60 rounded-2xl shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 text-white">
+            <div className="flex items-center gap-3">
+              <span className="px-2.5 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-full text-xs font-bold tracking-wide uppercase">
+                Demo Preview Mode
+              </span>
+              <p className="text-xs sm:text-sm text-indigo-100">
+                You are exploring CodeMentor with sample telemetry. <strong>Sign in</strong> to save real learning progress to the PostgreSQL database.
+              </p>
+            </div>
+            <button
+              onClick={() => setIsAuthModalOpen(true)}
+              className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-xs rounded-xl shadow-md transition-all whitespace-nowrap"
+            >
+              Sign In / Register
+            </button>
+          </div>
+        )}
+
+        {/* Global Storage Error Banner */}
+        {storageError && currentUser && (
+          <div className="mb-6 p-3.5 bg-rose-950/80 border border-rose-800/80 rounded-xl text-rose-200 text-xs sm:text-sm flex items-center justify-between gap-3 shadow-lg">
+            <span>⚠️ {storageError}</span>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-3 py-1 bg-rose-800/60 hover:bg-rose-700/80 text-white rounded-lg text-xs font-semibold"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
         {currentTab === 'landing' && (
           <LandingTab
-            onExploreDemo={() => setCurrentTab('dashboard')}
+            onExploreDemo={handleExploreDemo}
             onOpenAuth={() => setIsAuthModalOpen(true)}
             currentUser={currentUser}
           />
@@ -587,9 +616,10 @@ export default function App() {
         onClose={() => setIsAuthModalOpen(false)}
         onAuthSuccess={(user) => {
           setCurrentUser(user);
+          setIsDemoMode(false);
           localStorage.setItem('studyTrackerUser', JSON.stringify(user));
           setIsAuthModalOpen(false);
-          setCurrentTab('dashboard'); // Redirect directly to authenticated Dashboard!
+          setCurrentTabRaw('dashboard');
         }}
       />
 
@@ -602,11 +632,15 @@ export default function App() {
         completedDsa={completedDsa}
         onLogout={() => {
           setCurrentUser(null);
+          setIsDemoMode(false);
           localStorage.removeItem('studyTrackerUser');
           setCompletedDays([]);
           setCompletedDsa([]);
+          setStudyHours(0);
+          setNotes({});
+          setVivaScore({ correct: 0, total: 0 });
           setIsProfileModalOpen(false);
-          setIsAuthModalOpen(true);
+          setCurrentTabRaw('landing');
         }}
       />
     </div>
