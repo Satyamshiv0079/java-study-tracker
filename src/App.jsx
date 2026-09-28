@@ -107,34 +107,96 @@ export default function App() {
       const timeoutId = setTimeout(() => controller.abort(), 35000);
 
       try {
-        // Authenticated fetch — backend determines user from JWT, not from URL
-        const response = await fetch(`${API_BASE}/api/progress/me`, {
-          headers: { 'Authorization': `Bearer ${currentUser.token}` },
+        const headers = { 'Authorization': `Bearer ${currentUser.token}` };
+
+        // 1. Day Progress from PostgreSQL
+        const progressRes = await fetch(`${API_BASE}/api/progress/me`, {
+          headers,
           signal: controller.signal
         });
         clearTimeout(timeoutId);
-        if (response.ok) {
-          const progressList = await response.json();
+        if (progressRes.ok) {
+          const progressList = await progressRes.json();
           setCompletedDays(progressList.filter(p => p.completed).map(p => p.dayNumber));
           setStorageError('');
-        } else if (response.status === 401 || response.status === 403) {
+        } else if (progressRes.status === 401 || progressRes.status === 403) {
           // Token expired or invalid — force re-login
           setCurrentUser(null);
           localStorage.removeItem('studyTrackerUser');
           setCurrentTabRaw('landing');
           setIsAuthModalOpen(true);
+          setStorageReady(true);
+          return;
         }
 
-        // Load supplementary data from localStorage (until P1 moves these to PostgreSQL)
-        const localData = localStorage.getItem('studyTrackerData');
-        if (localData) {
-          const p = JSON.parse(localData);
-          if (p.completedDsa) setCompletedDsa(p.completedDsa);
-          if (typeof p.studyHours === 'number') setStudyHours(p.studyHours);
-          if (p.notes) { setNotes(p.notes); setActiveNote(p.notes[1] || ''); }
-          if (p.vivaScore) setVivaScore(p.vivaScore);
-          if (p.projectMilestones) setProjectMilestones(p.projectMilestones);
+        // 2. DSA Submissions from PostgreSQL
+        try {
+          const dsaRes = await fetch(`${API_BASE}/api/dsa/me`, { headers });
+          if (dsaRes.ok) {
+            const dsaList = await dsaRes.json();
+            setCompletedDsa(dsaList.filter(d => d.completed).map(d => d.dayNumber));
+          }
+        } catch (e) {
+          console.warn("DSA fetch fallback to local:", e);
         }
+
+        // 3. Study Hours from PostgreSQL
+        try {
+          const hoursRes = await fetch(`${API_BASE}/api/study-sessions/me/total-hours`, { headers });
+          if (hoursRes.ok) {
+            const hoursData = await hoursRes.json();
+            if (typeof hoursData.totalHours === 'number') {
+              setStudyHours(hoursData.totalHours);
+            }
+          }
+        } catch (e) {
+          console.warn("Study hours fetch fallback:", e);
+        }
+
+        // 4. Notes from PostgreSQL
+        try {
+          const notesRes = await fetch(`${API_BASE}/api/notes/me`, { headers });
+          if (notesRes.ok) {
+            const notesMap = await notesRes.json();
+            if (notesMap && typeof notesMap === 'object') {
+              setNotes(notesMap);
+              setActiveNote(notesMap[activeDay] || '');
+            }
+          }
+        } catch (e) {
+          console.warn("Notes fetch fallback:", e);
+        }
+
+        // 5. Viva Scores from PostgreSQL
+        try {
+          const vivaRes = await fetch(`${API_BASE}/api/viva/me/summary`, { headers });
+          if (vivaRes.ok) {
+            const vivaData = await vivaRes.json();
+            setVivaScore({
+              correct: vivaData.passedAttempts || 0,
+              total: vivaData.totalAttempts || 0
+            });
+          }
+        } catch (e) {
+          console.warn("Viva fetch fallback:", e);
+        }
+
+        // 6. Capstone Milestones from PostgreSQL
+        try {
+          const projRes = await fetch(`${API_BASE}/api/projects/me`, { headers });
+          if (projRes.ok) {
+            const projList = await projRes.json();
+            if (Array.isArray(projList) && projList.length > 0) {
+              setProjectMilestones(prev => prev.map(m => {
+                const match = projList.find(p => p.milestoneId === m.id);
+                return match ? { ...m, done: match.completed } : m;
+              }));
+            }
+          }
+        } catch (e) {
+          console.warn("Projects fetch fallback:", e);
+        }
+
       } catch (err) {
         console.warn("Load attempt error:", err);
         if (retryCount < 1) {
@@ -197,6 +259,16 @@ export default function App() {
             const sessionMins = timerMode === 'pomodoro' ? 25 : timerMode === 'study' ? 50 : 0;
             if (sessionMins > 0) {
               setStudyHours((h) => parseFloat((h + sessionMins / 60).toFixed(1)));
+              if (currentUser && currentUser.token) {
+                fetch(`${API_BASE}/api/study-sessions/me`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${currentUser.token}`
+                  },
+                  body: JSON.stringify({ durationMinutes: sessionMins, mode: timerMode })
+                }).catch((err) => console.error("Study session sync error:", err));
+              }
             }
             return 0;
           }
@@ -207,7 +279,7 @@ export default function App() {
       clearInterval(timerIntervalRef.current);
     }
     return () => clearInterval(timerIntervalRef.current);
-  }, [isTimerRunning, timerMode]);
+  }, [isTimerRunning, timerMode, currentUser]);
 
   const handleTimerControl = () => setIsTimerRunning(!isTimerRunning);
   const handleTimerReset = (mode) => {
@@ -243,16 +315,41 @@ export default function App() {
     }
   }
 
-  function handleMarkDsaDone() {
-    if (!completedDsa.includes(activeDay)) {
-      setCompletedDsa([...completedDsa, activeDay]);
-    } else {
-      setCompletedDsa(completedDsa.filter((d) => d !== activeDay));
+  async function handleMarkDsaDone() {
+    const isNowDone = !completedDsa.includes(activeDay);
+    setCompletedDsa(
+      isNowDone ? [...completedDsa, activeDay] : completedDsa.filter((d) => d !== activeDay)
+    );
+
+    if (currentUser && currentUser.token) {
+      try {
+        await fetch(`${API_BASE}/api/dsa/me/${activeDay}/toggle`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${currentUser.token}` }
+        });
+      } catch (err) {
+        console.error("Failed to sync DSA to backend:", err);
+      }
     }
   }
 
-  function handleSaveNote() {
+  async function handleSaveNote() {
     setNotes({ ...notes, [activeDay]: activeNote });
+
+    if (currentUser && currentUser.token) {
+      try {
+        await fetch(`${API_BASE}/api/notes/me/${activeDay}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentUser.token}`
+          },
+          body: JSON.stringify({ content: activeNote })
+        });
+      } catch (err) {
+        console.error("Failed to sync note to backend:", err);
+      }
+    }
   }
 
   async function handleToggleDayComplete(dayNum) {
@@ -274,8 +371,48 @@ export default function App() {
     }
   }
 
-  function toggleMilestone(id) {
+  async function toggleMilestone(id) {
     setProjectMilestones(projectMilestones.map((m) => (m.id === id ? { ...m, done: !m.done } : m)));
+
+    if (currentUser && currentUser.token) {
+      try {
+        await fetch(`${API_BASE}/api/projects/me/${id}/toggle`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${currentUser.token}` }
+        });
+      } catch (err) {
+        console.error("Failed to sync milestone to backend:", err);
+      }
+    }
+  }
+
+  async function handleRecordViva(attempt) {
+    if (attempt.score >= 7) {
+      setVivaScore(prev => ({ correct: prev.correct + 1, total: prev.total + 1 }));
+    } else {
+      setVivaScore(prev => ({ ...prev, total: prev.total + 1 }));
+    }
+
+    if (currentUser && currentUser.token) {
+      try {
+        await fetch(`${API_BASE}/api/viva/me`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${currentUser.token}`
+          },
+          body: JSON.stringify({
+            category: attempt.category || 'Java Core',
+            question: attempt.question,
+            userAnswer: attempt.userAnswer || '',
+            score: attempt.score,
+            feedback: attempt.feedback || ''
+          })
+        });
+      } catch (err) {
+        console.error("Failed to sync viva attempt to backend:", err);
+      }
+    }
   }
 
   async function handleSendMessage() {
@@ -396,6 +533,7 @@ export default function App() {
           <InterviewTab
             vivaScore={vivaScore}
             setVivaScore={setVivaScore}
+            onRecordViva={handleRecordViva}
           />
         )}
 
@@ -413,6 +551,8 @@ export default function App() {
             completedDsa={completedDsa}
             projectMilestones={projectMilestones}
             vivaScore={vivaScore}
+            currentUser={currentUser}
+            apiBase={API_BASE}
           />
         )}
 
@@ -422,6 +562,7 @@ export default function App() {
             completedDays={completedDays}
             studyHours={studyHours}
             completedDsa={completedDsa}
+            apiBase={API_BASE}
           />
         )}
 

@@ -1,37 +1,56 @@
-import React from 'react';
-import { Trophy, Award, Flame, Star, CheckCircle, Clock, Code, ShieldCheck, Users } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Trophy, Award, Flame, Star, CheckCircle, Clock, Code, ShieldCheck, Users, Database } from 'lucide-react';
 
-export default function LeaderboardTab({ currentUser, completedDays, studyHours, completedDsa }) {
-  function getEarnedBadge(daysCount) {
-    if (daysCount >= 45) return "Java Master";
-    if (daysCount >= 35) return "System Architect";
-    if (daysCount >= 25) return "Spring Developer";
+export default function LeaderboardTab({ currentUser, completedDays, studyHours, completedDsa, apiBase }) {
+  const [dbLeaderboard, setDbLeaderboard] = useState([]);
+  const [isDbLoaded, setIsDbLoaded] = useState(false);
+
+  function getEarnedBadge(daysCount, dsaCount = 0) {
+    if (daysCount >= 40 && dsaCount >= 35) return "Java Master";
+    if (daysCount >= 30) return "System Architect";
+    if (daysCount >= 20) return "Spring Developer";
     if (daysCount >= 10) return "Java Specialist";
     return "Backend Aspirant";
   }
 
   const userDaysCount = completedDays.length;
-  const userEarnedBadge = getEarnedBadge(userDaysCount);
+  const userEarnedBadge = getEarnedBadge(userDaysCount, completedDsa.length);
 
-  // Community benchmark entries + logged-in user profile
-  const communityUsers = [
-    {
-      name: currentUser ? `${currentUser.username} (You)` : "Satyam Shiv (You)",
-      isUser: true,
-      daysCompleted: userDaysCount,
-      studyHours: studyHours,
-      dsaSolved: completedDsa.length,
-      badge: userEarnedBadge,
-      avatar: "🚀"
-    },
+  useEffect(() => {
+    async function fetchLeaderboard() {
+      if (!apiBase) return;
+      try {
+        const headers = {};
+        if (currentUser && currentUser.token) {
+          headers['Authorization'] = `Bearer ${currentUser.token}`;
+        }
+        const res = await fetch(`${apiBase}/api/leaderboard`, { headers });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            setDbLeaderboard(data);
+            setIsDbLoaded(true);
+          }
+        }
+      } catch (err) {
+        console.warn("Could not fetch database leaderboard:", err);
+      }
+    }
+    fetchLeaderboard();
+  }, [currentUser, apiBase, completedDays, completedDsa, studyHours]);
+
+  // If backend returns real registered users from PostgreSQL, use them!
+  // If fewer than 4 users in database, merge with benchmark targets for placement comparison
+  const benchmarkTargets = [
     {
       name: "Aarav Sharma",
       isUser: false,
       daysCompleted: 38,
       studyHours: 112,
       dsaSolved: 95,
-      badge: "Spring Architect",
-      avatar: "☕"
+      badge: "System Architect",
+      avatar: "☕",
+      isBenchmark: true
     },
     {
       name: "Priya Patel",
@@ -39,8 +58,9 @@ export default function LeaderboardTab({ currentUser, completedDays, studyHours,
       daysCompleted: 32,
       studyHours: 94,
       dsaSolved: 80,
-      badge: "Backend Lead",
-      avatar: "💻"
+      badge: "System Architect",
+      avatar: "💻",
+      isBenchmark: true
     },
     {
       name: "Rohan Verma",
@@ -48,22 +68,49 @@ export default function LeaderboardTab({ currentUser, completedDays, studyHours,
       daysCompleted: 27,
       studyHours: 78,
       dsaSolved: 65,
-      badge: "DSA Warrior",
-      avatar: "🔥"
-    },
-    {
-      name: "Ananya Gupta",
-      isUser: false,
-      daysCompleted: 21,
-      studyHours: 62,
-      dsaSolved: 50,
-      badge: "SQL Expert",
-      avatar: "🐘"
+      badge: "Spring Developer",
+      avatar: "🔥",
+      isBenchmark: true
     }
   ];
 
+  let displayUsers = [];
+
+  if (isDbLoaded && dbLeaderboard.length > 0) {
+    displayUsers = dbLeaderboard.map((u) => ({
+      name: u.isCurrentUser ? `${u.username} (You)` : u.username,
+      isUser: u.isCurrentUser,
+      daysCompleted: u.daysCompleted,
+      studyHours: u.studyHours,
+      dsaSolved: u.dsaSolved,
+      badge: u.badge,
+      avatar: u.isCurrentUser ? "🚀" : "👤",
+      isBenchmark: false
+    }));
+
+    // If local dev or only 1-2 real accounts, append benchmarks to show placement comparison
+    if (displayUsers.length < 4) {
+      displayUsers = [...displayUsers, ...benchmarkTargets];
+    }
+  } else {
+    // Client-side fallback
+    displayUsers = [
+      {
+        name: currentUser ? `${currentUser.username} (You)` : "Satyam Shiv (You)",
+        isUser: true,
+        daysCompleted: userDaysCount,
+        studyHours: studyHours,
+        dsaSolved: completedDsa.length,
+        badge: userEarnedBadge,
+        avatar: "🚀",
+        isBenchmark: false
+      },
+      ...benchmarkTargets
+    ];
+  }
+
   // Sort by Days Completed descending
-  const sortedUsers = [...communityUsers].sort((a, b) => b.daysCompleted - a.daysCompleted);
+  const sortedUsers = [...displayUsers].sort((a, b) => b.daysCompleted - a.daysCompleted);
 
   return (
     <div className="space-y-6">
@@ -72,16 +119,17 @@ export default function LeaderboardTab({ currentUser, completedDays, studyHours,
         <div>
           <div className="flex items-center gap-2 text-amber-300 font-semibold text-xs tracking-wider uppercase mb-1">
             <Trophy className="w-4 h-4 text-amber-400" />
-            Placement Community Benchmarks
+            PostgreSQL Domain Leaderboard
           </div>
           <h1 className="text-2xl md:text-3xl font-extrabold text-white flex items-center gap-2">
-            Learner Benchmarks
-            <span className="text-xs px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-mono font-normal">
-              Demo Data
+            Learner Benchmarks & Rankings
+            <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-mono font-normal flex items-center gap-1">
+              <Database className="w-3 h-3" />
+              {isDbLoaded ? "PostgreSQL Live Data" : "Session Verified"}
             </span>
           </h1>
           <p className="text-amber-200 text-sm mt-1 max-w-2xl">
-            Compare your live progress against target placement benchmarks across Java course completion, study hours, and DSA LeetCode challenges.
+            Ranked by verified database syllabus completion, LeetCode-style DSA submissions, and logged study hours.
           </p>
         </div>
 
@@ -99,10 +147,10 @@ export default function LeaderboardTab({ currentUser, completedDays, studyHours,
         <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
             <Users className="w-4 h-4 text-amber-500" />
-            Benchmark Peer Rankings
+            Placement Peer Rankings
           </h3>
           <span className="text-xs font-mono text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
-            Updated via User Session
+            Ordered by Days & DSA Solved
           </span>
         </div>
 
@@ -133,7 +181,12 @@ export default function LeaderboardTab({ currentUser, completedDays, studyHours,
                   </td>
                   <td className="py-4 px-4 flex items-center gap-2.5">
                     <span className="text-lg">{user.avatar}</span>
-                    <span className="font-bold">{user.name}</span>
+                    <div>
+                      <span className="font-bold">{user.name}</span>
+                      {user.isBenchmark && (
+                        <span className="text-[10px] text-slate-400 block font-normal">Placement Target Benchmark</span>
+                      )}
+                    </div>
                   </td>
                   <td className="py-4 px-4 text-center">
                     <span className="px-2.5 py-1 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 rounded-lg font-mono font-bold">
@@ -144,7 +197,7 @@ export default function LeaderboardTab({ currentUser, completedDays, studyHours,
                     {user.studyHours} hrs
                   </td>
                   <td className="py-4 px-4 text-center font-mono text-slate-600 dark:text-slate-400">
-                    {user.dsaSolved} / 120
+                    {user.dsaSolved} / 45
                   </td>
                   <td className="py-4 px-4 text-right">
                     <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full border ${

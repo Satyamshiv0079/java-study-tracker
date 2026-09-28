@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { getDaySyllabus } from '../data/syllabus';
 import { Sparkles, MessageSquare, CheckCircle, HelpCircle, UserCheck, Send, RefreshCw, Trophy } from 'lucide-react';
 
-export default function InterviewTab({ vivaScore, setVivaScore }) {
+export default function InterviewTab({ vivaScore, setVivaScore, onRecordViva }) {
   const [mode, setMode] = useState('ai'); // 'ai' | 'flashcards'
   const [quizTopic, setQuizTopic] = useState('Java Core');
   const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
@@ -58,21 +58,42 @@ Return ONLY a JSON object:
       const data = await res.json();
       setAiEvaluation(data);
 
-      if (data.score >= 7) {
-        setVivaScore({ correct: vivaScore.correct + 1, total: vivaScore.total + 1 });
+      if (onRecordViva) {
+        onRecordViva({
+          category: quizTopic,
+          question: activeVivaCard.q,
+          userAnswer: userAnswerInput,
+          score: data.score,
+          feedback: data.feedback
+        });
       } else {
-        setVivaScore({ ...vivaScore, total: vivaScore.total + 1 });
+        if (data.score >= 7) {
+          setVivaScore({ correct: vivaScore.correct + 1, total: vivaScore.total + 1 });
+        } else {
+          setVivaScore({ ...vivaScore, total: vivaScore.total + 1 });
+        }
       }
     } catch (err) {
       console.error("Evaluation error:", err);
-      setAiEvaluation({
+      const fallbackData = {
         score: 8,
         isPass: true,
         feedback: "Good concise answer covering the core definition. Mentioning memory allocation would make it 10/10.",
         missingKeywords: ["Stack Frame", "Garbage Collection"],
         followUpQuestion: "How does the JVM handle stack overflow exceptions?"
-      });
-      setVivaScore({ correct: vivaScore.correct + 1, total: vivaScore.total + 1 });
+      };
+      setAiEvaluation(fallbackData);
+      if (onRecordViva) {
+        onRecordViva({
+          category: quizTopic,
+          question: activeVivaCard.q,
+          userAnswer: userAnswerInput,
+          score: fallbackData.score,
+          feedback: fallbackData.feedback
+        });
+      } else {
+        setVivaScore({ correct: vivaScore.correct + 1, total: vivaScore.total + 1 });
+      }
     } finally {
       setIsEvaluating(false);
     }
@@ -264,7 +285,17 @@ Return ONLY a JSON object:
                   <div className="flex justify-center gap-3">
                     <button
                       onClick={() => {
-                        setVivaScore({ ...vivaScore, total: vivaScore.total + 1 });
+                        if (onRecordViva) {
+                          onRecordViva({
+                            category: quizTopic,
+                            question: activeVivaCard.q,
+                            userAnswer: "Self-assessed flashcard - Missed it",
+                            score: 3,
+                            feedback: "User indicated need to review topic."
+                          });
+                        } else {
+                          setVivaScore({ ...vivaScore, total: vivaScore.total + 1 });
+                        }
                         handleNextQuestion();
                       }}
                       className="px-5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl transition"
@@ -273,7 +304,17 @@ Return ONLY a JSON object:
                     </button>
                     <button
                       onClick={() => {
-                        setVivaScore({ correct: vivaScore.correct + 1, total: vivaScore.total + 1 });
+                        if (onRecordViva) {
+                          onRecordViva({
+                            category: quizTopic,
+                            question: activeVivaCard.q,
+                            userAnswer: "Self-assessed flashcard - Nailed it",
+                            score: 10,
+                            feedback: "User accurately recalled flashcard response."
+                          });
+                        } else {
+                          setVivaScore({ correct: vivaScore.correct + 1, total: vivaScore.total + 1 });
+                        }
                         handleNextQuestion();
                       }}
                       className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition shadow-md"

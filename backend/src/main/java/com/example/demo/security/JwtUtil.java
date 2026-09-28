@@ -16,7 +16,7 @@ public class JwtUtil {
 
     private final SecretKey key;
 
-    public JwtUtil(@Value("${JWT_SECRET}") String jwtSecret) {
+    public JwtUtil(@Value("${JWT_SECRET:${jwt.secret:}}") String jwtSecret) {
         if (jwtSecret == null || jwtSecret.isBlank() || jwtSecret.getBytes(StandardCharsets.UTF_8).length < 32) {
             throw new IllegalStateException(
                 "JWT_SECRET environment variable is missing or too short (minimum 32 bytes). " +
