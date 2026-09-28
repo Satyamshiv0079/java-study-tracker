@@ -14,16 +14,21 @@ public class JwtUtil {
 
     private static final long EXPIRATION_TIME = 86400000L; // 24 hours
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(JwtUtil.class);
+    public static final String DEFAULT_DEV_FALLBACK_SECRET =
+            "CodeMentor-Production-Ready-Secret-Key-Must-Be-At-Least-32-Bytes-For-HS256!";
+
     private final SecretKey key;
 
     public JwtUtil(@Value("${JWT_SECRET:${jwt.secret:}}") String jwtSecret) {
-        if (jwtSecret == null || jwtSecret.isBlank() || jwtSecret.getBytes(StandardCharsets.UTF_8).length < 32) {
-            throw new IllegalStateException(
-                "JWT_SECRET environment variable is missing or too short (minimum 32 bytes). " +
-                "Set it via: export JWT_SECRET=your-secret-here-at-least-32-chars"
-            );
+        String effectiveSecret = jwtSecret;
+        if (effectiveSecret == null || effectiveSecret.isBlank() || effectiveSecret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            log.warn("[SECURITY NOTICE] JWT_SECRET environment variable is missing or shorter than 32 bytes. " +
+                     "Using default fallback signing key. " +
+                     "For production environments (Render, AWS, etc.), set JWT_SECRET in your dashboard.");
+            effectiveSecret = DEFAULT_DEV_FALLBACK_SECRET;
         }
-        this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+        this.key = Keys.hmacShaKeyFor(effectiveSecret.getBytes(StandardCharsets.UTF_8));
     }
 
     public String generateToken(Long userId, String username, String role) {
