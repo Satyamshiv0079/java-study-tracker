@@ -14,6 +14,13 @@ import java.util.List;
 public class KnowledgeDocumentController {
 
     private final KnowledgeDocumentRepository knowledgeRepository;
+    private final com.example.demo.service.KnowledgeSearchService knowledgeSearchService;
+
+    @GetMapping("/search")
+    public ResponseEntity<List<com.example.demo.dto.KnowledgeSearchResultDto>> searchKnowledge(
+            @RequestParam(required = false, defaultValue = "") String q) {
+        return ResponseEntity.ok(knowledgeSearchService.search(q));
+    }
 
     @GetMapping
     public ResponseEntity<List<KnowledgeDocument>> getAllDocuments() {
