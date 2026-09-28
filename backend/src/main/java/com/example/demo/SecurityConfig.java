@@ -82,11 +82,18 @@ public class SecurityConfig {
         configuration.setAllowedOriginPatterns(List.of(
             frontendUrl,
             "https://java-study-tracker*.vercel.app",
-            "http://localhost:*",
-            "http://127.0.0.1:*"
+            "http://localhost:5173",
+            "http://localhost:3000",
+            "http://127.0.0.1:5173",
+            "http://127.0.0.1:3000"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedHeaders(Arrays.asList(
+            "Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"
+        ));
+        configuration.setExposedHeaders(Arrays.asList(
+            "Authorization", "Retry-After"
+        ));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -94,3 +101,4 @@ public class SecurityConfig {
         return source;
     }
 }
+

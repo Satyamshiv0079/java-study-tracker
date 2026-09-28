@@ -288,12 +288,18 @@ Supporting modules:
 
 ## 🧪 Testing Strategy
 
-The backend includes a comprehensive automated test suite consisting of **36 unit and integration tests**:
+The backend includes a comprehensive automated test suite consisting of **41 unit and integration tests**:
 
-- **Security & Authorization Tests** (`SecurityIntegrationTest` — 8 tests):
+- **Security, Authorization & User-Isolation Tests** (`SecurityIntegrationTest` — 12 tests):
   - 401 Unauthorized on unauthenticated requests to protected endpoints.
   - 403 Forbidden vs 200 OK on role-restricted endpoints (`ROLE_ADMIN` vs `ROLE_USER`).
-  - Strict user-isolation tests: verifying User B cannot access User A's private study progress.
+  - Strict multi-domain user isolation:
+    - User B cannot see or mutate User A's `DayProgress`.
+    - User B cannot see User A's solved `DsaSubmission` records.
+    - User B cannot access or overwrite User A's private study `Note` records.
+    - User B's `StudySession` hours remain 0.0 when User A logs study sessions.
+- **GitHub Live API & Fallback Test** (`GitHubServiceTest` — 1 test):
+  - Verified live API querying with in-memory TTL caching and strict zero-fabrication guarantees on rate limiting.
 - **Rate Limiting Tests** (`RateLimitingFilterTest` — 5 tests):
   - Sliding-window throughput, burst limits, and HTTP 429 rejection on auth endpoints.
 - **JWT Cryptography Tests** (`JwtUtilTest` — 3 tests):
@@ -316,15 +322,19 @@ cd backend
 ### ✅ Completed
 - [x] JWT + Spring Security 6 with fail-fast secret checks
 - [x] Explicit HTTP 401 (Unauthorized) and HTTP 403 (Forbidden) handlers
-- [x] Strict user-resource authorization and ownership isolation
+- [x] Strict user-resource authorization and multi-domain ownership isolation (Progress, DSA, Notes, Sessions)
 - [x] Full PostgreSQL persistence for curriculum, DSA, study sessions, notes, viva, and milestones
 - [x] Elimination of authenticated-state dual source of truth in `localStorage`
-- [x] Read-only interactive Demo Preview mode with clear onboarding flow
-- [x] IP sliding-window rate limiting (HTTP 429)
+- [x] Read-only interactive Demo Preview mode (`/demo`) with clear onboarding flow
+- [x] IP sliding-window rate limiting (HTTP 429 with `Retry-After`)
 - [x] SpringDoc OpenAPI 3.0 / Swagger UI documentation with BearerAuth
 - [x] Flyway automated schema migrations (`V1__init_schema.sql`)
-- [x] 36 automated unit, integration, and security tests passing
-- [x] Live GitHub integration and Piston sandbox code execution
+- [x] 41 automated unit, integration, and security tests passing
+- [x] Live GitHub integration via dedicated `GitHubService` with in-memory TTL caching and zero fake data
+- [x] Client-side optimistic updates with automatic rollback on network/server errors
+- [x] Modular frontend architecture (`src/api/`, `src/hooks/useTrackerData.js`)
+- [x] Tightened CORS configuration with explicit allowed and exposed headers
+- [x] Production profile (`application-prod.yml`) with Hikari pool tuning and `ddl-auto: validate`
 
 ### 🟡 Next Enhancements
 - [ ] Transition from local sliding-window to Redis distributed rate limiting

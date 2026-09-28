@@ -18,8 +18,9 @@ import LeaderboardTab from './components/LeaderboardTab';
 import AuthModal from './components/AuthModal';
 import ProfileModal from './components/ProfileModal';
 import { getDaySyllabus } from './data/syllabus';
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'https://java-study-tracker.onrender.com';
+import { useTrackerData } from './hooks/useTrackerData';
+import { API_BASE } from './api/client';
+import { AlertCircle } from 'lucide-react';
 
 const TAB_TO_PATH = {
   landing: '/',
@@ -53,8 +54,6 @@ export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [storageReady, setStorageReady] = useState(false);
-  const [storageError, setStorageError] = useState(null);
   const [isDemoMode, setIsDemoMode] = useState(false);
 
   const [currentUser, setCurrentUser] = useState(() => {
@@ -69,26 +68,38 @@ export default function App() {
   const [isDemoGuardOpen, setIsDemoGuardOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Derive currentTab from URL path
   const currentTab = PATH_TO_TAB[location.pathname] || (currentUser ? 'dashboard' : 'landing');
-
   const [activeDay, setActiveDay] = useState(27);
-  const [completedDays, setCompletedDays] = useState([]);
-  const [completedDsa, setCompletedDsa] = useState([]);
-  const [studyHours, setStudyHours] = useState(0);
-  const [notes, setNotes] = useState({});
   const [activeNote, setActiveNote] = useState('');
-  const [vivaScore, setVivaScore] = useState({ correct: 0, total: 0 });
-  const [projectMilestones, setProjectMilestones] = useState([
-    { id: 1, name: "Initialize Spring Boot project & pom.xml setup", done: false },
-    { id: 2, name: "Establish Postgres/H2 schema & application.yml configuration", done: false },
-    { id: 3, name: "Write entity classes with real database relations", done: false },
-    { id: 4, name: "Add Spring Security, JWT filter, and PasswordEncoder", done: false },
-    { id: 5, name: "Implement REST controllers and global exception handling", done: false },
-    { id: 6, name: "Build frontend and wire it to the real API", done: false },
-    { id: 7, name: "Handle auth flow end-to-end (login, token storage, protected routes)", done: false },
-    { id: 8, name: "Write tests, then actually deploy both frontend and backend", done: false }
-  ]);
+
+  // Handle session expiration
+  const handleSessionExpired = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('studyTrackerUser');
+    navigate('/');
+    setIsAuthModalOpen(true);
+  };
+
+  // Custom hook: all state, persistence, and optimistic updates with rollback
+  const {
+    storageReady,
+    storageError,
+    actionError,
+    completedDays,
+    completedDsa,
+    studyHours,
+    notes,
+    vivaScore,
+    projectMilestones,
+    toggleDayComplete,
+    toggleDsaDone,
+    saveDayNote,
+    toggleMilestone,
+    recordViva,
+    recordStudyHours,
+    loadDemoData,
+    resetData
+  } = useTrackerData(currentUser, isDemoMode, handleSessionExpired);
 
   // Timer state
   const [timerMode, setTimerMode] = useState('pomodoro');
@@ -111,35 +122,21 @@ export default function App() {
 
   const dayData = getDaySyllabus(activeDay);
 
-  // Navigation helper that updates React Router location
-  const setCurrentTab = (tab, specificDay) => {
-    if (specificDay) setActiveDay(specificDay);
+  // Sync activeNote with notes map
+  useEffect(() => {
+    setActiveNote(notes[activeDay] || '');
+  }, [activeDay, notes]);
 
-    // Protected check: if user navigates to /app/* without login or demo mode, open auth modal
-    if (tab !== 'landing' && !currentUser && !isDemoMode) {
-      setAuthModalIsLogin(true);
-      setIsAuthModalOpen(true);
-      return;
-    }
+  useEffect(() => {
+    if (dayData) setSandboxCode(dayData.dsa.starterCode);
+    setReviewOutput('');
+  }, [activeDay]);
 
-    const targetPath = TAB_TO_PATH[tab] || '/app/dashboard';
-    navigate(targetPath);
-  };
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages, isGenerating]);
 
-  // Launch interactive demo mode
-  const handleExploreDemo = () => {
-    setIsDemoMode(true);
-    setCompletedDays([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30]);
-    setCompletedDsa([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28]);
-    setStudyHours(94.5);
-    setVivaScore({ correct: 21, total: 25 });
-    setProjectMilestones(prev => prev.map((m, i) => ({ ...m, done: i < 6 })));
-    setStorageError(null);
-    setActiveDay(27);
-    navigate('/app/dashboard');
-  };
-
-  // Synchronize route on initial mount or path change
+  // Route & Demo synchronizer
   useEffect(() => {
     if (location.pathname === '/demo') {
       handleExploreDemo();
@@ -150,7 +147,6 @@ export default function App() {
       setAuthModalIsLogin(false);
       setIsAuthModalOpen(true);
     } else if (location.pathname.startsWith('/app') && !currentUser && !isDemoMode) {
-      // Protected route guard: prompt login and redirect to landing
       navigate('/');
       setAuthModalIsLogin(true);
       setIsAuthModalOpen(true);
@@ -169,154 +165,6 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // --- Load persisted state from PostgreSQL API on mount for authenticated user ---
-  useEffect(() => {
-    async function loadData(retryCount = 0) {
-      if (!currentUser || !currentUser.token) {
-        setStorageReady(true);
-        return;
-      }
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 35000);
-
-      try {
-        const headers = { 'Authorization': `Bearer ${currentUser.token}` };
-        let hasSyncIssue = false;
-
-        // 1. Day Progress from PostgreSQL
-        const progressRes = await fetch(`${API_BASE}/api/progress/me`, {
-          headers,
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-
-        if (progressRes.ok) {
-          const progressList = await progressRes.json();
-          setCompletedDays(progressList.filter(p => p.completed).map(p => p.dayNumber));
-        } else if (progressRes.status === 401 || progressRes.status === 403) {
-          // Token expired or invalid — force re-login
-          setCurrentUser(null);
-          localStorage.removeItem('studyTrackerUser');
-          navigate('/');
-          setIsAuthModalOpen(true);
-          setStorageReady(true);
-          return;
-        } else {
-          hasSyncIssue = true;
-        }
-
-        // 2. DSA Submissions from PostgreSQL
-        try {
-          const dsaRes = await fetch(`${API_BASE}/api/dsa/me`, { headers });
-          if (dsaRes.ok) {
-            const dsaList = await dsaRes.json();
-            setCompletedDsa(dsaList.filter(d => d.completed).map(d => d.dayNumber));
-          } else {
-            hasSyncIssue = true;
-          }
-        } catch {
-          hasSyncIssue = true;
-        }
-
-        // 3. Study Hours from PostgreSQL
-        try {
-          const hoursRes = await fetch(`${API_BASE}/api/study-sessions/me/total-hours`, { headers });
-          if (hoursRes.ok) {
-            const hoursData = await hoursRes.json();
-            if (typeof hoursData.totalHours === 'number') {
-              setStudyHours(hoursData.totalHours);
-            }
-          } else {
-            hasSyncIssue = true;
-          }
-        } catch {
-          hasSyncIssue = true;
-        }
-
-        // 4. Notes from PostgreSQL
-        try {
-          const notesRes = await fetch(`${API_BASE}/api/notes/me`, { headers });
-          if (notesRes.ok) {
-            const notesMap = await notesRes.json();
-            if (notesMap && typeof notesMap === 'object') {
-              setNotes(notesMap);
-              setActiveNote(notesMap[activeDay] || '');
-            }
-          } else {
-            hasSyncIssue = true;
-          }
-        } catch {
-          hasSyncIssue = true;
-        }
-
-        // 5. Viva Scores from PostgreSQL
-        try {
-          const vivaRes = await fetch(`${API_BASE}/api/viva/me/summary`, { headers });
-          if (vivaRes.ok) {
-            const vivaData = await vivaRes.json();
-            setVivaScore({
-              correct: vivaData.passedAttempts || 0,
-              total: vivaData.totalAttempts || 0
-            });
-          } else {
-            hasSyncIssue = true;
-          }
-        } catch {
-          hasSyncIssue = true;
-        }
-
-        // 6. Capstone Milestones from PostgreSQL
-        try {
-          const projRes = await fetch(`${API_BASE}/api/projects/me`, { headers });
-          if (projRes.ok) {
-            const projList = await projRes.json();
-            if (Array.isArray(projList) && projList.length > 0) {
-              setProjectMilestones(prev => prev.map(m => {
-                const match = projList.find(p => p.milestoneId === m.id);
-                return match ? { ...m, done: match.completed } : m;
-              }));
-            }
-          } else {
-            hasSyncIssue = true;
-          }
-        } catch {
-          hasSyncIssue = true;
-        }
-
-        setStorageError(hasSyncIssue ? "Notice: Some progress could not be fetched from the database." : null);
-
-      } catch (err) {
-        console.error("Backend load error:", err);
-        if (retryCount < 1) {
-          setTimeout(() => loadData(retryCount + 1), 3000);
-          return;
-        }
-        setStorageError("Unable to connect to the backend database service. Please retry.");
-      } finally {
-        setStorageReady(true);
-      }
-    }
-    loadData();
-
-    // Keep-alive ping
-    const pingInterval = setInterval(() => {
-      fetch(`${API_BASE}/api/health`).catch(() => {});
-    }, 10 * 60 * 1000);
-
-    return () => clearInterval(pingInterval);
-  }, [currentUser]);
-
-  useEffect(() => {
-    if (dayData) setSandboxCode(dayData.dsa.starterCode);
-    setActiveNote(notes[activeDay] || '');
-    setReviewOutput('');
-  }, [activeDay]);
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatMessages, isGenerating]);
-
   // Timer countdown
   useEffect(() => {
     if (isTimerRunning) {
@@ -327,17 +175,7 @@ export default function App() {
             clearInterval(timerIntervalRef.current);
             const sessionMins = timerMode === 'pomodoro' ? 25 : timerMode === 'study' ? 50 : 0;
             if (sessionMins > 0) {
-              setStudyHours((h) => parseFloat((h + sessionMins / 60).toFixed(1)));
-              if (currentUser && currentUser.token) {
-                fetch(`${API_BASE}/api/study-sessions/me`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${currentUser.token}`
-                  },
-                  body: JSON.stringify({ durationMinutes: sessionMins, mode: timerMode })
-                }).catch((err) => console.error("Study session sync error:", err));
-              }
+              recordStudyHours(sessionMins, timerMode);
             }
             return 0;
           }
@@ -364,6 +202,77 @@ export default function App() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Navigation helper
+  const setCurrentTab = (tab, specificDay) => {
+    if (specificDay) setActiveDay(specificDay);
+
+    if (tab !== 'landing' && !currentUser && !isDemoMode) {
+      setAuthModalIsLogin(true);
+      setIsAuthModalOpen(true);
+      return;
+    }
+
+    const targetPath = TAB_TO_PATH[tab] || '/app/dashboard';
+    navigate(targetPath);
+  };
+
+  const handleExploreDemo = () => {
+    setIsDemoMode(true);
+    loadDemoData();
+    setActiveDay(27);
+    navigate('/app/dashboard');
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setIsDemoMode(false);
+    localStorage.removeItem('studyTrackerUser');
+    resetData();
+    setIsProfileModalOpen(false);
+    navigate('/');
+  };
+
+  // Mutator guards for Demo Mode
+  const onToggleDay = (dayNum) => {
+    if (isDemoMode && !currentUser) {
+      setIsDemoGuardOpen(true);
+      return;
+    }
+    toggleDayComplete(dayNum);
+  };
+
+  const onToggleDsa = () => {
+    if (isDemoMode && !currentUser) {
+      setIsDemoGuardOpen(true);
+      return;
+    }
+    toggleDsaDone(activeDay);
+  };
+
+  const onSaveNote = () => {
+    if (isDemoMode && !currentUser) {
+      setIsDemoGuardOpen(true);
+      return;
+    }
+    saveDayNote(activeDay, activeNote);
+  };
+
+  const onToggleMilestone = (id) => {
+    if (isDemoMode && !currentUser) {
+      setIsDemoGuardOpen(true);
+      return;
+    }
+    toggleMilestone(id);
+  };
+
+  const onRecordVivaAttempt = (attempt) => {
+    if (isDemoMode && !currentUser) {
+      setIsDemoGuardOpen(true);
+      return;
+    }
+    recordViva(attempt);
+  };
+
   async function handleGetReview() {
     setIsReviewing(true);
     setReviewOutput('');
@@ -381,131 +290,6 @@ export default function App() {
       setReviewOutput(`Review service unavailable: ${err.message}`);
     } finally {
       setIsReviewing(false);
-    }
-  }
-
-  // Guard mutations in Demo Mode
-  async function handleMarkDsaDone() {
-    if (isDemoMode && !currentUser) {
-      setIsDemoGuardOpen(true);
-      return;
-    }
-
-    const isNowDone = !completedDsa.includes(activeDay);
-    setCompletedDsa(
-      isNowDone ? [...completedDsa, activeDay] : completedDsa.filter((d) => d !== activeDay)
-    );
-
-    if (currentUser && currentUser.token) {
-      try {
-        await fetch(`${API_BASE}/api/dsa/me/${activeDay}/toggle`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${currentUser.token}` }
-        });
-      } catch (err) {
-        console.error("Failed to sync DSA to backend:", err);
-      }
-    }
-  }
-
-  async function handleSaveNote() {
-    if (isDemoMode && !currentUser) {
-      setIsDemoGuardOpen(true);
-      return;
-    }
-
-    setNotes({ ...notes, [activeDay]: activeNote });
-
-    if (currentUser && currentUser.token) {
-      try {
-        await fetch(`${API_BASE}/api/notes/me/${activeDay}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${currentUser.token}`
-          },
-          body: JSON.stringify({ content: activeNote })
-        });
-      } catch (err) {
-        console.error("Failed to sync note to backend:", err);
-      }
-    }
-  }
-
-  async function handleToggleDayComplete(dayNum) {
-    if (isDemoMode && !currentUser) {
-      setIsDemoGuardOpen(true);
-      return;
-    }
-
-    const isNowComplete = !completedDays.includes(dayNum);
-    setCompletedDays(
-      isNowComplete ? [...completedDays, dayNum] : completedDays.filter((d) => d !== dayNum)
-    );
-    
-    if (currentUser && currentUser.token) {
-      try {
-        await fetch(`${API_BASE}/api/progress/me/${dayNum}`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${currentUser.token}` }
-        });
-      } catch (err) {
-        console.error("Failed to sync day to Java backend", err);
-      }
-    }
-  }
-
-  async function toggleMilestone(id) {
-    if (isDemoMode && !currentUser) {
-      setIsDemoGuardOpen(true);
-      return;
-    }
-
-    setProjectMilestones(projectMilestones.map((m) => (m.id === id ? { ...m, done: !m.done } : m)));
-
-    if (currentUser && currentUser.token) {
-      try {
-        await fetch(`${API_BASE}/api/projects/me/${id}/toggle`, {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${currentUser.token}` }
-        });
-      } catch (err) {
-        console.error("Failed to sync milestone to backend:", err);
-      }
-    }
-  }
-
-  async function handleRecordViva(attempt) {
-    if (isDemoMode && !currentUser) {
-      setIsDemoGuardOpen(true);
-      return;
-    }
-
-    if (attempt.score >= 7) {
-      setVivaScore(prev => ({ correct: prev.correct + 1, total: prev.total + 1 }));
-    } else {
-      setVivaScore(prev => ({ ...prev, total: prev.total + 1 }));
-    }
-
-    if (currentUser && currentUser.token) {
-      try {
-        await fetch(`${API_BASE}/api/viva/me`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${currentUser.token}`
-          },
-          body: JSON.stringify({
-            category: attempt.category || 'Java Core',
-            question: attempt.question,
-            userAnswer: attempt.userAnswer || '',
-            score: attempt.score,
-            feedback: attempt.feedback || ''
-          })
-        });
-      } catch (err) {
-        console.error("Failed to sync viva attempt to backend:", err);
-      }
     }
   }
 
@@ -546,24 +330,6 @@ export default function App() {
     }
   }
 
-  const handleOpenAuth = (isLogin = true) => {
-    setAuthModalIsLogin(isLogin);
-    setIsAuthModalOpen(true);
-  };
-
-  const handleLogout = () => {
-    setCurrentUser(null);
-    setIsDemoMode(false);
-    localStorage.removeItem('studyTrackerUser');
-    setCompletedDays([]);
-    setCompletedDsa([]);
-    setStudyHours(0);
-    setNotes({});
-    setVivaScore({ correct: 0, total: 0 });
-    setIsProfileModalOpen(false);
-    navigate('/');
-  };
-
   if (!storageReady) {
     return (
       <div className="min-h-screen bg-dark-bg flex items-center justify-center text-slate-400 text-xs font-mono">
@@ -576,6 +342,14 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-dark-bg text-slate-100 font-sans antialiased selection:bg-brand-600 selection:text-white flex flex-col">
+      {/* Action Rollback Error Toast */}
+      {actionError && (
+        <div className="fixed top-16 right-4 z-50 p-3.5 bg-rose-950/90 border border-rose-800 text-rose-200 text-xs rounded-xl shadow-2xl flex items-center gap-2 animate-in slide-in-from-top-2">
+          <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+          <span>{actionError}</span>
+        </div>
+      )}
+
       {isPublicLanding ? (
         // Public SaaS Landing Experience
         <div className="flex flex-col min-h-screen">
@@ -588,7 +362,7 @@ export default function App() {
             formatTime={formatTime}
             currentUser={currentUser}
             isDemoMode={isDemoMode}
-            onOpenAuth={() => handleOpenAuth(true)}
+            onOpenAuth={() => { setAuthModalIsLogin(true); setIsAuthModalOpen(true); }}
             onOpenProfile={() => setIsProfileModalOpen(true)}
             onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
             onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
@@ -597,7 +371,7 @@ export default function App() {
           <main className="flex-1 p-4 lg:p-8 max-w-7xl w-full mx-auto">
             <LandingTab
               onExploreDemo={handleExploreDemo}
-              onOpenAuth={handleOpenAuth}
+              onOpenAuth={(isLogin) => { setAuthModalIsLogin(isLogin); setIsAuthModalOpen(true); }}
               currentUser={currentUser}
             />
           </main>
@@ -605,7 +379,6 @@ export default function App() {
       ) : (
         // Authenticated & Interactive Demo Workspace Shell
         <div className="flex h-screen overflow-hidden">
-          {/* Persistent Sidebar (Desktop) / Slide-out (Mobile) */}
           <Sidebar
             currentTab={currentTab}
             onSelectTab={setCurrentTab}
@@ -615,11 +388,10 @@ export default function App() {
             isOpenMobile={isMobileMenuOpen}
             onCloseMobile={() => setIsMobileMenuOpen(false)}
             onOpenProfile={() => setIsProfileModalOpen(true)}
-            onOpenAuth={() => handleOpenAuth(true)}
+            onOpenAuth={() => { setAuthModalIsLogin(true); setIsAuthModalOpen(true); }}
             onLogout={handleLogout}
           />
 
-          {/* Main Content Workspace */}
           <div className="flex-1 flex flex-col h-full overflow-hidden">
             <Header
               isTimerRunning={isTimerRunning}
@@ -630,14 +402,14 @@ export default function App() {
               formatTime={formatTime}
               currentUser={currentUser}
               isDemoMode={isDemoMode}
-              onOpenAuth={() => handleOpenAuth(true)}
+              onOpenAuth={() => { setAuthModalIsLogin(true); setIsAuthModalOpen(true); }}
               onOpenProfile={() => setIsProfileModalOpen(true)}
               onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
               onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
             />
 
             <main className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar pb-20 lg:pb-8">
-              {/* Interactive Demo Mode Notice Banner */}
+              {/* Interactive Demo Mode Banner */}
               {isDemoMode && !currentUser && (
                 <div className="mb-6 p-4 bg-gradient-to-r from-brand-950 via-dark-card to-dark-surface border border-brand-500/40 rounded-2xl shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 text-white">
                   <div className="flex items-center gap-3">
@@ -649,7 +421,7 @@ export default function App() {
                     </p>
                   </div>
                   <button
-                    onClick={() => handleOpenAuth(true)}
+                    onClick={() => { setAuthModalIsLogin(true); setIsAuthModalOpen(true); }}
                     className="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white font-bold text-xs rounded-xl shadow-md transition-all whitespace-nowrap"
                   >
                     Sign In / Register
@@ -669,10 +441,10 @@ export default function App() {
                   activeDay={activeDay}
                   setActiveDay={setActiveDay}
                   dayData={dayData}
-                  handleToggleDayComplete={handleToggleDayComplete}
+                  handleToggleDayComplete={onToggleDay}
                   activeNote={activeNote}
                   setActiveNote={setActiveNote}
-                  handleSaveNote={handleSaveNote}
+                  handleSaveNote={onSaveNote}
                   setCurrentTab={setCurrentTab}
                   currentUser={currentUser}
                   isDemoMode={isDemoMode}
@@ -684,7 +456,7 @@ export default function App() {
                   activeDay={activeDay}
                   setActiveDay={setActiveDay}
                   completedDays={completedDays}
-                  handleToggleDayComplete={handleToggleDayComplete}
+                  handleToggleDayComplete={onToggleDay}
                   dayData={dayData}
                   setCurrentTab={setCurrentTab}
                 />
@@ -695,7 +467,7 @@ export default function App() {
                   activeDay={activeDay}
                   dayData={dayData}
                   completedDsa={completedDsa}
-                  handleMarkDsaDone={handleMarkDsaDone}
+                  handleMarkDsaDone={onToggleDsa}
                   sandboxCode={sandboxCode}
                   setSandboxCode={setSandboxCode}
                   handleGetReview={handleGetReview}
@@ -707,15 +479,15 @@ export default function App() {
               {currentTab === 'interview' && (
                 <InterviewTab
                   vivaScore={vivaScore}
-                  setVivaScore={setVivaScore}
-                  onRecordViva={handleRecordViva}
+                  setVivaScore={() => {}}
+                  onRecordViva={onRecordVivaAttempt}
                 />
               )}
 
               {currentTab === 'project' && (
                 <ProjectTab
                   projectMilestones={projectMilestones}
-                  toggleMilestone={toggleMilestone}
+                  toggleMilestone={onToggleMilestone}
                 />
               )}
 
@@ -757,19 +529,18 @@ export default function App() {
               )}
             </main>
 
-            {/* Mobile Bottom Navigation Bar */}
             <MobileNav
               currentTab={currentTab}
               onSelectTab={setCurrentTab}
               onOpenProfile={() => setIsProfileModalOpen(true)}
-              onOpenAuth={() => handleOpenAuth(true)}
+              onOpenAuth={() => { setAuthModalIsLogin(true); setIsAuthModalOpen(true); }}
               currentUser={currentUser}
             />
           </div>
         </div>
       )}
 
-      {/* Global Command Palette (Ctrl + K) */}
+      {/* Modals & Dialogs */}
       <CommandPalette
         isOpen={isCommandPaletteOpen}
         onClose={() => setIsCommandPaletteOpen(false)}
@@ -779,7 +550,6 @@ export default function App() {
         apiBase={API_BASE}
       />
 
-      {/* Auth Modal (Login / Register) */}
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
@@ -793,7 +563,6 @@ export default function App() {
         }}
       />
 
-      {/* Profile Modal */}
       <ProfileModal
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
@@ -804,11 +573,13 @@ export default function App() {
         onLogout={handleLogout}
       />
 
-      {/* Demo Guard Modal */}
       <DemoGuardModal
         isOpen={isDemoGuardOpen}
         onClose={() => setIsDemoGuardOpen(false)}
-        onOpenAuth={(isLogin) => handleOpenAuth(isLogin)}
+        onOpenAuth={(isLogin) => {
+          setAuthModalIsLogin(isLogin);
+          setIsAuthModalOpen(true);
+        }}
       />
     </div>
   );

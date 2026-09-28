@@ -105,6 +105,16 @@ class SecurityIntegrationTest {
     }
 
     @Test
+    @DisplayName("ADMIN-only endpoint DELETE /api/knowledge/{id} should return 403 Forbidden for normal ROLE_USER")
+    void adminDeleteEndpointShouldRejectNormalUser() throws Exception {
+        String token = jwtUtil.generateToken(1L, "satyam", "ROLE_USER");
+
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/api/knowledge/999")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     @DisplayName("User Isolation: User B cannot see progress completed by User A")
     void userIsolationProgressTest() throws Exception {
         com.example.demo.model.User userA = userRepository.save(com.example.demo.model.User.builder()
@@ -137,4 +147,109 @@ class SecurityIntegrationTest {
                     org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("\"dayNumber\":7"))
                 ));
     }
+
+    @Test
+    @DisplayName("User Isolation: User B cannot see DSA solved by User A")
+    void userIsolationDsaTest() throws Exception {
+        com.example.demo.model.User userA = userRepository.save(com.example.demo.model.User.builder()
+                .username("dsaUserA")
+                .email("dsaA@isolate.com")
+                .password("hash123")
+                .role("ROLE_USER")
+                .build());
+
+        com.example.demo.model.User userB = userRepository.save(com.example.demo.model.User.builder()
+                .username("dsaUserB")
+                .email("dsaB@isolate.com")
+                .password("hash123")
+                .role("ROLE_USER")
+                .build());
+
+        String userAToken = jwtUtil.generateToken(userA.getId(), userA.getUsername(), userA.getRole());
+        String userBToken = jwtUtil.generateToken(userB.getId(), userB.getUsername(), userB.getRole());
+
+        // User A marks Day 5 DSA completed
+        mockMvc.perform(post("/api/dsa/me/5/toggle")
+                        .header("Authorization", "Bearer " + userAToken))
+                .andExpect(status().isOk());
+
+        // User B checks DSA list - Day 5 should NOT be present for User B
+        mockMvc.perform(get("/api/dsa/me")
+                        .header("Authorization", "Bearer " + userBToken))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().string(
+                    org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("\"dayNumber\":5"))
+                ));
+    }
+
+    @Test
+    @DisplayName("User Isolation: User B cannot see private notes saved by User A")
+    void userIsolationNotesTest() throws Exception {
+        com.example.demo.model.User userA = userRepository.save(com.example.demo.model.User.builder()
+                .username("notesUserA")
+                .email("notesA@isolate.com")
+                .password("hash123")
+                .role("ROLE_USER")
+                .build());
+
+        com.example.demo.model.User userB = userRepository.save(com.example.demo.model.User.builder()
+                .username("notesUserB")
+                .email("notesB@isolate.com")
+                .password("hash123")
+                .role("ROLE_USER")
+                .build());
+
+        String userAToken = jwtUtil.generateToken(userA.getId(), userA.getUsername(), userA.getRole());
+        String userBToken = jwtUtil.generateToken(userB.getId(), userB.getUsername(), userB.getRole());
+
+        // User A saves confidential note
+        mockMvc.perform(post("/api/notes/me/12")
+                        .header("Authorization", "Bearer " + userAToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"content\":\"UserA secret notes on JVM GC\"}"))
+                .andExpect(status().isOk());
+
+        // User B fetches their notes - User A's secret note MUST NOT be present
+        mockMvc.perform(get("/api/notes/me")
+                        .header("Authorization", "Bearer " + userBToken))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().string(
+                    org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("UserA secret notes"))
+                ));
+    }
+
+    @Test
+    @DisplayName("User Isolation: User B's study hours remain zero when User A logs study sessions")
+    void userIsolationStudyHoursTest() throws Exception {
+        com.example.demo.model.User userA = userRepository.save(com.example.demo.model.User.builder()
+                .username("studyUserA")
+                .email("studyA@isolate.com")
+                .password("hash123")
+                .role("ROLE_USER")
+                .build());
+
+        com.example.demo.model.User userB = userRepository.save(com.example.demo.model.User.builder()
+                .username("studyUserB")
+                .email("studyB@isolate.com")
+                .password("hash123")
+                .role("ROLE_USER")
+                .build());
+
+        String userAToken = jwtUtil.generateToken(userA.getId(), userA.getUsername(), userA.getRole());
+        String userBToken = jwtUtil.generateToken(userB.getId(), userB.getUsername(), userB.getRole());
+
+        // User A logs a 60 min session
+        mockMvc.perform(post("/api/study-sessions/me")
+                        .header("Authorization", "Bearer " + userAToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"durationMinutes\":60,\"mode\":\"study\"}"))
+                .andExpect(status().isOk());
+
+        // User B queries total-hours - must be 0.0
+        mockMvc.perform(get("/api/study-sessions/me/total-hours")
+                        .header("Authorization", "Bearer " + userBToken))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath("$.totalHours").value(0.0));
+    }
 }
+

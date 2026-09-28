@@ -1,0 +1,49 @@
+# ===================================================================
+# Production Spring Boot Profile for CodeMentor (PostgreSQL Cloud)
+# Activate via: -Dspring.profiles.active=prod or SPRING_PROFILES_ACTIVE=prod
+# ===================================================================
+
+server:
+  port: ${PORT:8080}
+  error:
+    include-stacktrace: never
+    include-message: always
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      connection-timeout: 30000
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate # Flyway is the single source of truth for production schema
+    show-sql: false
+    open-in-view: false
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 0
+    locations: classpath:db/migration
+  h2:
+    console:
+      enabled: false # Disabled in production for security
+
+jwt:
+  secret: ${JWT_SECRET}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
