@@ -29,21 +29,21 @@ A full-stack, interview-grade placement preparation platform and developer-learn
 *A modern Linear-inspired dark aesthetic featuring instant syllabus jump, active mission preview, and interactive exploratory demo mode.*
 ![Landing Hero](docs/screenshots/landing_hero.png)
 
-### 2. Central Preparation Dashboard & Telemetry
+### 2. Secure Authentication & PostgreSQL Synchronization
+*Clean modal authentication dialog with BCrypt password hashing, signed JWT Bearer tokens, and seamless transition from demo preview to authenticated PostgreSQL persistence.*
+![Auth Modal](docs/screenshots/auth_modal.png)
+
+### 3. Central Preparation Dashboard & Telemetry
 *Answers Where am I?, What's next?, and Am I improving? with real-time streak calculation, DSA progress, Pomodoro study logging, and viva accuracy.*
 ![Dashboard Telemetry](docs/screenshots/dashboard_telemetry.png)
 
-### 3. Structured 45-Day Curriculum & Technical Roadmap
+### 4. Structured 45-Day Curriculum & Technical Roadmap
 *Day-by-day Java 17 to Spring Boot progression with structured learning objectives, architectural theory notes, curated video walkthroughs, and syllabus completion toggling.*
 ![Curriculum Roadmap](docs/screenshots/curriculum_roadmap.png)
 
-### 4. DSA Practice Workspace & Java 17 Sandbox
+### 5. DSA Practice Workspace & Java 17 Sandbox
 *Interactive coding environment with LeetCode correlation, real-time code editor, AI code analysis, and live multi-language execution via the Piston JVM engine.*
 ![DSA Workspace](docs/screenshots/dsa_workspace.png)
-
-### 5. Secure Authentication & PostgreSQL Synchronization
-*Clean modal authentication dialog with BCrypt password hashing, signed JWT Bearer tokens, and seamless transition from demo preview to authenticated PostgreSQL persistence.*
-![Auth Modal](docs/screenshots/auth_modal.png)
 
 ### 6. AI Mock Technical Interview & Viva Assessment
 *Real-time timed oral technical interviews across Java Core, OOPs, Spring Boot, and System Design with instant rubric-based AI scoring and feedback.*
