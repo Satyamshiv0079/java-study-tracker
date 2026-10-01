@@ -375,7 +375,7 @@ Schema changes are versioned via Flyway:
 ### Prerequisites
 
 - **Java 17+** (JDK)
-- **Node.js 20+** & **npm**
+- **Node.js 22+ (LTS)** & **npm** (specified in `.nvmrc` and `package.json` `engines`)
 - **Maven 3.9+** (or use included `./mvnw`)
 - **PostgreSQL** (or use in-memory H2 default for local dev)
 
