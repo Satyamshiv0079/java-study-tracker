@@ -1,0 +1,19 @@
+package com.satyamshiv.studytracker.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class ProjectMilestoneDto {
+    private Long id;
+    private int milestoneId;
+    private boolean completed;
+    private LocalDateTime updatedAt;
+}

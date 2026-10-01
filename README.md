@@ -1,14 +1,16 @@
 # 🚀 CodeMentor — Production-Grade 45-Day Java & Spring Boot Placement Platform
+### *Enterprise GenAI & RAG Edition (Aligned with HCLTech Campus-Advanced Beginner GenAI Engineer Requirements)*
 
 [![Java 17](https://img.shields.io/badge/Java-17-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
-[![Spring Boot 3.4](https://img.shields.io/badge/Spring_Boot-3.4-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
-[![Spring Security 6](https://img.shields.io/badge/Spring_Security-6-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white)](https://spring.io/projects/spring-security)
+[![Spring Boot 4.1](https://img.shields.io/badge/Spring_Boot-4.1-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![Python 3.12](https://img.shields.io/badge/Python-3.12_FastAPI-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://fastapi.tiangolo.com/)
+[![FAISS](https://img.shields.io/badge/Vector_DB-FAISS_IndexFlatIP-00599C?style=for-the-badge&logo=c%2B%2B&logoColor=white)](https://github.com/facebookresearch/faiss)
+[![Sentence Transformers](https://img.shields.io/badge/Embeddings-all--MiniLM--L6--v2_(384--dim)-FFA800?style=for-the-badge&logo=huggingface&logoColor=white)](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon_Cloud-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://neon.tech/)
 [![Flyway](https://img.shields.io/badge/Flyway-12.4-CC0202?style=for-the-badge&logo=flyway&logoColor=white)](https://flywaydb.org/)
 [![React 18](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![OpenAPI 3.0](https://img.shields.io/badge/OpenAPI-3.0_Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=black)](https://swagger.io/)
-[![Model Context Protocol](https://img.shields.io/badge/MCP-JSON--RPC_2.0-7C3AED?style=for-the-badge&logo=anthropic&logoColor=white)](https://modelcontextprotocol.io/)
-[![Automated Tests](https://img.shields.io/badge/Tests-43_Passing-brightgreen?style=for-the-badge&logo=junit5&logoColor=white)](https://junit.org/junit5/)
+[![Automated Tests](https://img.shields.io/badge/Tests-61_Passing_(52_Java_+_9_Python)-brightgreen?style=for-the-badge&logo=junit5&logoColor=white)](https://junit.org/junit5/)
+
 
 A full-stack, interview-grade placement preparation platform and developer-learning workspace engineered to take software engineers from core Java fundamentals to production Spring Boot microservices, high-frequency DSA, mock viva assessments, and real portfolio deployment.
 
@@ -79,8 +81,44 @@ CodeMentor is engineered with strict production standards, zero fake data genera
 - ✅ **Model Context Protocol (MCP) JSON-RPC 2.0 Server**: Standard MCP protocol handler at `POST /api/mcp/rpc` (`tools/list` and `tools/call`) with JSON Schema input validation, plus developer REST endpoints (`/api/tools/**`).
 - ✅ **Live GitHub API Integration**: Dedicated `GitHubService` with in-memory TTL caching (15 minutes) and strict zero-fabrication error propagation (HTTP 429/503) instead of fake repository mocking.
 - ✅ **Spring Boot Actuator**: Dedicated `/actuator/health` and `/actuator/info` endpoints for cloud load balancer liveness probes, with protected management metrics.
-- ✅ **Flyway Database Versioning**: Automated schema migrations (`V1__init_schema.sql`, `V2__seed_curriculum.sql`) enforcing baseline-on-migrate and `ddl-auto: validate` in production.
-- ✅ **Client-Side Routing & Developer Theme**: React Router (`/`, `/demo`, `/login`, `/register`, `/app/*`), Linear/Notion-inspired dark palette (`#0B0F19`, `#111827`, accent `#7C3AED`), Command Palette (`Ctrl + K`), and Demo Guard Modal.
+- ✅ **Enterprise GenAI & RAG Engine (HCLTech Edition)**: Real dense vector retrieval powered by Sentence-Transformers (`all-MiniLM-L6-v2`, 384 dimensions) and FAISS (`IndexFlatIP`) with strict physical tenant isolation (`storage/users/{user_id}/`), sliding-window sentence-boundary chunking, and grounded Gemini 2.5 Flash answers with exact page citations.
+- ✅ **IR Retrieval Benchmark Harness**: Automated 16-question evaluation suite calculating real Precision@K, Recall@K, and Mean Reciprocal Rank (MRR).
+
+---
+
+## 🧠 Enterprise GenAI & RAG Architecture (HCLTech Requirements)
+
+CodeMentor features a dedicated Python GenAI microservice (`python-rag/`) integrated seamlessly behind the Spring Boot API Gateway:
+
+```
+[Browser Client (React)] 
+      │ (Bearer JWT)
+      ▼
+[Spring Boot 4.1 Gateway] ──(Validates JWT & Injects Authenticated user_id)──► [Python FastAPI Microservice]
+                                                                                        │
+                        ┌───────────────────────────────────────────────────────────────┴───────────────────────┐
+                        ▼                                                                                       ▼
+         [Document Processing Pipeline]                                                           [RAG Query Pipeline]
+        • PDF (pypdf), DOCX, TXT, MD                                                             • Query Vectorization (384-dim)
+        • Sliding Window (600 char, 60 overlap)                                                  • FAISS Tenant Partition
+        • Sentence Boundary Snap                                                                 • Cosine Sim Threshold (>= 0.25)
+        • all-MiniLM-L6-v2 (L2 Normalized)                                                       • Grounded Gemini Prompt
+        • Isolated storage/users/{user_id}/                                                      • Exact Bracket Citations [doc, p.X]
+```
+
+### 🔬 Technical Deep-Dive Documentation:
+- 📖 [**HCLTech GenAI Engineer Interview Guide**](docs/HCLTECH_GENAI_INTERVIEW.md) — Top 10 questions, answers, and role-mapping checklist.
+- 📐 [**RAG System Architecture**](docs/RAG_ARCHITECTURE.md) — Ingestion flow, query pipeline, and latency profiles.
+- 🧬 [**Embeddings & Vector Spaces**](docs/EMBEDDINGS.md) — Dense vs sparse, L2 normalization proof, cosine similarity math.
+- ⚡ [**FAISS Vector Indexing**](docs/FAISS.md) — `IndexFlatIP` vs `IVF` vs `HNSW`, scaling tradeoffs, index persistence.
+- 🤖 [**Transformers & Self-Attention**](docs/TRANSFORMERS.md) — Self-attention matrix math ($Q K^T / \sqrt{d_k}$), encoder vs decoder.
+- ✂️ [**Chunking Strategies**](docs/CHUNKING.md) — Sliding window, boundary preservation, context fragmentation vs dilution.
+- 🛡️ [**Tenant Security & Data Isolation**](docs/SECURITY.md) — Zero cross-tenant leakage threat model & test proofs.
+
+### 🧪 Automated Test Verification (61 Total Tests Passing)
+- **Spring Boot Backend**: 52 passing automated tests (`.\mvnw.cmd test`) covering security, multi-tenant user isolation, registration conflicts (HTTP 409), authentication failures (HTTP 401), validation (HTTP 400), pagination, and proxy routing.
+- **Python RAG Microservice**: 9 passing automated tests (`pytest python-rag/tests/`) covering sliding-window chunking, L2 normalized embeddings, FAISS CRUD, API lifecycle, and **strict multi-tenant isolation** (User A's documents are 100% inaccessible to User B).
+
 
 ---
 

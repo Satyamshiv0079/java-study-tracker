@@ -1,0 +1,44 @@
+package com.satyamshiv.studytracker.controller;
+
+import com.satyamshiv.studytracker.model.KnowledgeDocument;
+import com.satyamshiv.studytracker.repository.KnowledgeDocumentRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/knowledge")
+@RequiredArgsConstructor
+public class KnowledgeDocumentController {
+
+    private final KnowledgeDocumentRepository knowledgeRepository;
+    private final com.satyamshiv.studytracker.service.KnowledgeSearchService knowledgeSearchService;
+
+    @GetMapping("/search")
+    public ResponseEntity<List<com.satyamshiv.studytracker.dto.KnowledgeSearchResultDto>> searchKnowledge(
+            @RequestParam(required = false, defaultValue = "") String q) {
+        return ResponseEntity.ok(knowledgeSearchService.search(q));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<KnowledgeDocument>> getAllDocuments() {
+        return ResponseEntity.ok(knowledgeRepository.findAll());
+    }
+
+    @GetMapping("/category/{category}")
+    public ResponseEntity<List<KnowledgeDocument>> getByCategory(@PathVariable String category) {
+        return ResponseEntity.ok(knowledgeRepository.findByCategory(category));
+    }
+
+    @GetMapping("/day/{dayNumber}")
+    public ResponseEntity<List<KnowledgeDocument>> getByDay(@PathVariable Integer dayNumber) {
+        return ResponseEntity.ok(knowledgeRepository.findByDayNumber(dayNumber));
+    }
+
+    @PostMapping
+    public ResponseEntity<KnowledgeDocument> createDocument(@RequestBody KnowledgeDocument document) {
+        return ResponseEntity.ok(knowledgeRepository.save(document));
+    }
+}

@@ -525,6 +525,8 @@ export default function App() {
                   handleSendMessage={handleSendMessage}
                   isGenerating={isGenerating}
                   chatEndRef={chatEndRef}
+                  currentUser={currentUser}
+                  onOpenAuth={() => { setAuthModalIsLogin(true); setIsAuthModalOpen(true); }}
                 />
               )}
             </main>

@@ -47,3 +47,8 @@ management:
   endpoint:
     health:
       show-details: when_authorized
+
+rag:
+  service:
+    url: ${RAG_SERVICE_URL:http://localhost:8000}
+
