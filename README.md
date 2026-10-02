@@ -1,5 +1,5 @@
-# 🚀 CodeMentor — Production-Grade 45-Day Java & Spring Boot Placement Platform
-### *Enterprise GenAI & RAG Edition (Aligned with HCLTech Campus-Advanced Beginner GenAI Engineer Requirements)*
+# 🚀 CodeMentor — 45-Day Java & Spring Boot Placement Platform
+### *Full-Stack Developer Learning Tracker with GenAI & Retrieval-Augmented Generation (RAG)*
 
 [![Java 17](https://img.shields.io/badge/Java-17-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
 [![Spring Boot 4.1](https://img.shields.io/badge/Spring_Boot-4.1-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
@@ -12,7 +12,7 @@
 [![Automated Tests](https://img.shields.io/badge/Tests-61_Passing_(52_Java_+_9_Python)-brightgreen?style=for-the-badge&logo=junit5&logoColor=white)](https://junit.org/junit5/)
 
 
-A full-stack, interview-grade placement preparation platform and developer-learning workspace engineered to take software engineers from core Java fundamentals to production Spring Boot microservices, high-frequency DSA, mock viva assessments, and real portfolio deployment.
+A full-stack placement preparation platform and developer-learning workspace engineered to take software engineers from core Java fundamentals to Spring Boot microservices, high-frequency DSA, mock viva assessments, and portfolio deployment.
 
 ---
 
@@ -69,24 +69,24 @@ A full-stack, interview-grade placement preparation platform and developer-learn
 
 ---
 
-## 📌 Executive Architecture & Engineering Highlights
+## 📌 Key Architectural Capabilities & Implementation Highlights
 
-CodeMentor is engineered with strict production standards, zero fake data generation, and resilient server-side truth:
+CodeMentor is engineered with strict production standards, verified data persistence, and resilient server-side truth:
 
 - ✅ **Single Source of Truth**: All student progress (curriculum completion, DSA submissions, study sessions, notes, viva attempts, capstone milestones) persists in PostgreSQL (Neon Cloud) backed by connection pool tuning (HikariCP).
 - ✅ **Spring Security 6 & Fail-Fast JWT**: Stateless JWT token authentication with HMAC-SHA256. Secret keys are strictly validated at boot time (>= 256 bits / 32 bytes) with zero insecure fallback defaults.
-- ✅ **Multi-Domain User Isolation (43 Automated Tests)**: Rigorous database ownership checks ensure User B can never read or mutate User A's progress, DSA code submissions, notes, or study hours.
+- ✅ **Multi-Domain User Isolation (Automated Tests)**: Rigorous database ownership checks ensure User B can never read or mutate User A's progress, DSA code submissions, notes, or study hours.
 - ✅ **Optimistic UI with Automatic Rollbacks**: Frontend state updates render instantly for 60fps responsiveness; on any network or server failure, state automatically snapshots and rolls back with an actionable toast alert.
 - ✅ **Sliding-Window IP Rate Limiter**: Custom `RateLimitingFilter` enforces 10 req/min on authentication endpoints (`/api/users/**`) and 120 req/min across general APIs, returning HTTP 429 with RFC-compliant `Retry-After` headers.
 - ✅ **Model Context Protocol (MCP) JSON-RPC 2.0 Server**: Standard MCP protocol handler at `POST /api/mcp/rpc` (`tools/list` and `tools/call`) with JSON Schema input validation, plus developer REST endpoints (`/api/tools/**`).
-- ✅ **Live GitHub API Integration**: Dedicated `GitHubService` with in-memory TTL caching (15 minutes) and strict zero-fabrication error propagation (HTTP 429/503) instead of fake repository mocking.
+- ✅ **Live GitHub API Integration**: Dedicated `GitHubService` with in-memory TTL caching (15 minutes) and strict error propagation (HTTP 429/503) instead of fake repository mocking.
 - ✅ **Spring Boot Actuator**: Dedicated `/actuator/health` and `/actuator/info` endpoints for cloud load balancer liveness probes, with protected management metrics.
-- ✅ **Enterprise GenAI & RAG Engine (HCLTech Edition)**: Real dense vector retrieval powered by Sentence-Transformers (`all-MiniLM-L6-v2`, 384 dimensions) and FAISS (`IndexFlatIP`) with strict physical tenant isolation (`storage/users/{user_id}/`), sliding-window sentence-boundary chunking, and grounded Gemini 2.5 Flash answers with exact page citations.
+- ✅ **Python GenAI & RAG Subsystem**: Real dense vector retrieval powered by Sentence-Transformers (`all-MiniLM-L6-v2`, 384 dimensions) and FAISS (`IndexFlatIP`) with strict physical tenant isolation (`storage/users/{user_id}/`), sliding-window sentence-boundary chunking, and grounded Gemini answers with exact page citations.
 - ✅ **IR Retrieval Benchmark Harness**: Automated 16-question evaluation suite calculating real Precision@K, Recall@K, and Mean Reciprocal Rank (MRR).
 
 ---
 
-## 🧠 Enterprise GenAI & RAG Architecture (HCLTech Requirements)
+## 🧠 Python GenAI & RAG Architecture
 
 CodeMentor features a dedicated Python GenAI microservice (`python-rag/`) integrated seamlessly behind the Spring Boot API Gateway:
 
