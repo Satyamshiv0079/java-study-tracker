@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Play, Sparkles, CheckCircle2, Code2, Cpu, Terminal, ExternalLink, Flame, Check } from 'lucide-react';
+import { API_BASE } from '../api/client';
 
 export default function CodingTab({
   activeDay,
@@ -84,7 +85,7 @@ public class Solution {
     setReviewOutput(null);
 
     try {
-      const apiUrl = import.meta.env.PROD ? '/api/career' : 'http://localhost:3001/api/career';
+      const apiUrl = `${API_BASE}/api/career`;
       const prompt = `You are a Senior Principal Java Engineer. Review this Java DSA solution for "${dayData.dsa.title}".
 
 Code to review:

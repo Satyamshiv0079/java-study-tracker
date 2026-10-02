@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Briefcase, FileText, Sparkles, CheckCircle, AlertTriangle, Copy, ArrowRight, BookOpen, UserCheck, Search, Upload, Link as LinkIcon, X, FileCheck } from 'lucide-react';
+import { API_BASE } from '../api/client';
 
 export default function CareerHubTab() {
   const [subTab, setSubTab] = useState('resume'); // 'resume' | 'linkedin'
@@ -82,7 +83,7 @@ Project Developer - Java Study Tracker (2026)
     setAnalysisResult(null);
 
     try {
-      const apiUrl = import.meta.env.PROD ? '/api/career' : 'http://localhost:3001/api/career';
+      const apiUrl = `${API_BASE}/api/career`;
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

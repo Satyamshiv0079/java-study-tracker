@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getDaySyllabus } from '../data/syllabus';
 import { Sparkles, MessageSquare, CheckCircle2, HelpCircle, Send, RefreshCw, Trophy, Clock, ArrowRight, Award } from 'lucide-react';
+import { API_BASE } from '../api/client';
 
 export default function InterviewTab({ vivaScore, setVivaScore, onRecordViva }) {
   const [quizTopic, setQuizTopic] = useState('Java Core');
@@ -50,7 +51,7 @@ export default function InterviewTab({ vivaScore, setVivaScore, onRecordViva }) 
     setIsQuestionTimerActive(false);
 
     try {
-      const apiUrl = import.meta.env.PROD ? '/api/career' : 'http://localhost:3001/api/career';
+      const apiUrl = `${API_BASE}/api/career`;
       const prompt = `You are a Senior Java Technical Interviewer. Evaluate candidate's verbal answer for this interview question.
 
 Question: "${activeVivaCard.q}"

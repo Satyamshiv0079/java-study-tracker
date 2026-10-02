@@ -75,9 +75,15 @@ async def upload_document(
             detail=f"Unsupported file type. Supported extensions: {list(DocumentProcessor.SUPPORTED_EXTENSIONS)}"
         )
 
+    MAX_UPLOAD_BYTES = 10 * 1024 * 1024  # 10 MB
     content_bytes = await file.read()
     if len(content_bytes) == 0:
         raise HTTPException(status_code=400, detail="Uploaded file is empty")
+    if len(content_bytes) > MAX_UPLOAD_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            detail=f"File exceeds maximum upload limit of 10MB (received {len(content_bytes)} bytes)."
+        )
 
     # 1. Extract text and pages
     try:

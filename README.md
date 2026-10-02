@@ -8,8 +8,8 @@
 [![Sentence Transformers](https://img.shields.io/badge/Embeddings-all--MiniLM--L6--v2_(384--dim)-FFA800?style=for-the-badge&logo=huggingface&logoColor=white)](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon_Cloud-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://neon.tech/)
 [![Flyway](https://img.shields.io/badge/Flyway-12.4-CC0202?style=for-the-badge&logo=flyway&logoColor=white)](https://flywaydb.org/)
-[![React 18](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![Automated Tests](https://img.shields.io/badge/Tests-61_Passing_(52_Java_+_9_Python)-brightgreen?style=for-the-badge&logo=junit5&logoColor=white)](https://junit.org/junit5/)
+[![React 19](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![Automated Tests](https://img.shields.io/badge/Tests-69_Passing_(60_Java_+_9_Python)-brightgreen?style=for-the-badge&logo=junit5&logoColor=white)](https://junit.org/junit5/)
 
 
 A full-stack placement preparation platform and developer-learning workspace engineered to take software engineers from core Java fundamentals to Spring Boot microservices, high-frequency DSA, mock viva assessments, and portfolio deployment.
@@ -82,7 +82,10 @@ CodeMentor is engineered with strict production standards, verified data persist
 - ✅ **Live GitHub API Integration**: Dedicated `GitHubService` with in-memory TTL caching (15 minutes) and strict error propagation (HTTP 429/503) instead of fake repository mocking.
 - ✅ **Spring Boot Actuator**: Dedicated `/actuator/health` and `/actuator/info` endpoints for cloud load balancer liveness probes, with protected management metrics.
 - ✅ **Python GenAI & RAG Subsystem**: Real dense vector retrieval powered by Sentence-Transformers (`all-MiniLM-L6-v2`, 384 dimensions) and FAISS (`IndexFlatIP`) with strict physical tenant isolation (`storage/users/{user_id}/`), sliding-window sentence-boundary chunking, and grounded Gemini answers with exact page citations.
+- ✅ **SSRF-Safe AI & Career Subsystem**: Server-side request validation (`SsrfProtectionValidator`) rigorously rejects loopback (`127.0.0.0/8`, `::1`), link-local (`169.254.0.0/16`), site-local RFC 1918 private IPs (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), and cloud metadata endpoints (`169.254.169.254`) with bounded content parsing before invoking Google Gemini LLM.
+- ✅ **Unified Authoritative Architecture**: Single Spring Boot REST API orchestrating authentication, rate limiting, PostgreSQL persistence, MCP JSON-RPC, and GenAI proxying without duplicate serverless or Express layers.
 - ✅ **IR Retrieval Benchmark Harness**: Automated 16-question evaluation suite calculating real Precision@K, Recall@K, and Mean Reciprocal Rank (MRR).
+
 
 ---
 

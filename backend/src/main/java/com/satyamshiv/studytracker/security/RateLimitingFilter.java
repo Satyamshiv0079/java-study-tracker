@@ -26,11 +26,13 @@ import java.util.concurrent.ConcurrentHashMap;
 public class RateLimitingFilter extends OncePerRequestFilter {
 
     public static final int AUTH_LIMIT = 10;          // 10 requests per minute for auth
+    public static final int AI_LIMIT = 20;            // 20 requests per minute for AI endpoints
     public static final int GENERAL_LIMIT = 120;       // 120 requests per minute for general API
     public static final long WINDOW_MS = 60_000L;      // 1 minute sliding window
 
     // IP -> Deque of request timestamps (epoch ms)
     private final Map<String, Deque<Long>> authRequestLog = new ConcurrentHashMap<>();
+    private final Map<String, Deque<Long>> aiRequestLog = new ConcurrentHashMap<>();
     private final Map<String, Deque<Long>> generalRequestLog = new ConcurrentHashMap<>();
 
     @Override
@@ -62,6 +64,12 @@ public class RateLimitingFilter extends OncePerRequestFilter {
                 rejectWithRateLimit(response, calculateRetryAfter(authRequestLog, clientIp, now));
                 return;
             }
+        } else if (isAiEndpoint(path)) {
+            if (!isAllowed(aiRequestLog, clientIp, AI_LIMIT, now)) {
+                log.warn("Rate limit tripped for AI endpoint {} from IP {}", path, clientIp);
+                rejectWithRateLimit(response, calculateRetryAfter(aiRequestLog, clientIp, now));
+                return;
+            }
         } else if (path.startsWith("/api/")) {
             if (!isAllowed(generalRequestLog, clientIp, GENERAL_LIMIT, now)) {
                 log.warn("Rate limit tripped for general API endpoint {} from IP {}", path, clientIp);
@@ -75,6 +83,10 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
     private boolean isAuthEndpoint(String path) {
         return path.equals("/api/users/login") || path.equals("/api/users/register");
+    }
+
+    private boolean isAiEndpoint(String path) {
+        return path.equals("/api/chat") || path.equals("/api/career");
     }
 
     private synchronized boolean isAllowed(Map<String, Deque<Long>> logMap, String ip, int maxRequests, long now) {

@@ -53,6 +53,7 @@ public class SecurityConfig {
                 // --- PUBLIC endpoints (no JWT required) ---
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/users/login", "/api/users/register").permitAll()
+                .requestMatchers("/api/chat", "/api/career").permitAll()
                 .requestMatchers("/api/health", "/h2-console/**").permitAll()
                 .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()

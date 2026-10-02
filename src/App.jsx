@@ -307,7 +307,7 @@ export default function App() {
         parts: [{ text: m.text }]
       }));
       
-      const apiUrl = import.meta.env.PROD ? '/api/chat' : 'http://localhost:3001/api/chat';
+      const apiUrl = `${API_BASE}/api/chat`;
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
