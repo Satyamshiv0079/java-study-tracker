@@ -18,7 +18,7 @@ A full-stack placement preparation platform and developer-learning workspace eng
 
 ## 🌐 Live Deployments & Documentation
 
-- **Web Application**: [https://java-study-tracker.vercel.app](https://java-study-tracker.vercel.app)
+- **Web Application**: [https://java-study-tracker-omega.vercel.app](https://java-study-tracker-omega.vercel.app)
 - **Production REST API**: [https://java-study-tracker.onrender.com](https://java-study-tracker.onrender.com)
 - **Interactive Swagger UI**: [https://java-study-tracker.onrender.com/swagger-ui/index.html](https://java-study-tracker.onrender.com/swagger-ui/index.html)
 - **Cloud Health Probe (Actuator)**: [https://java-study-tracker.onrender.com/actuator/health](https://java-study-tracker.onrender.com/actuator/health)

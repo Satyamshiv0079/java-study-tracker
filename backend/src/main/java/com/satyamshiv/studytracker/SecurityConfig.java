@@ -27,7 +27,7 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final com.satyamshiv.studytracker.security.RateLimitingFilter rateLimitingFilter;
 
-    @org.springframework.beans.factory.annotation.Value("${FRONTEND_URL:https://java-study-tracker.vercel.app}")
+    @org.springframework.beans.factory.annotation.Value("${FRONTEND_URL:https://java-study-tracker-omega.vercel.app}")
     private String frontendUrl;
 
     @Bean
