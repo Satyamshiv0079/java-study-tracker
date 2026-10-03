@@ -9,7 +9,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon_Cloud-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://neon.tech/)
 [![Flyway](https://img.shields.io/badge/Flyway-12.4-CC0202?style=for-the-badge&logo=flyway&logoColor=white)](https://flywaydb.org/)
 [![React 19](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![Automated Tests](https://img.shields.io/badge/Tests-69_Passing_(60_Java_+_9_Python)-brightgreen?style=for-the-badge&logo=junit5&logoColor=white)](https://junit.org/junit5/)
+[![Automated Tests](https://img.shields.io/badge/Tests-76_Passing_(65_Java_+_11_Python)-brightgreen?style=for-the-badge&logo=junit5&logoColor=white)](https://junit.org/junit5/)
 
 
 A full-stack placement preparation platform and developer-learning workspace engineered to take software engineers from core Java fundamentals to Spring Boot microservices, high-frequency DSA, mock viva assessments, and portfolio deployment.
@@ -74,18 +74,17 @@ A full-stack placement preparation platform and developer-learning workspace eng
 CodeMentor is engineered with strict production standards, verified data persistence, and resilient server-side truth:
 
 - ✅ **Single Source of Truth**: All student progress (curriculum completion, DSA submissions, study sessions, notes, viva attempts, capstone milestones) persists in PostgreSQL (Neon Cloud) backed by connection pool tuning (HikariCP).
-- ✅ **Spring Security 6 & Fail-Fast JWT**: Stateless JWT token authentication with HMAC-SHA256. Secret keys are strictly validated at boot time (>= 256 bits / 32 bytes) with zero insecure fallback defaults.
+- ✅ **Spring Security 7 & Fail-Fast JWT**: Stateless JWT token authentication with HMAC-SHA256. Secret keys are strictly validated at boot time (>= 256 bits / 32 bytes) with zero insecure fallback defaults.
 - ✅ **Multi-Domain User Isolation (Automated Tests)**: Rigorous database ownership checks ensure User B can never read or mutate User A's progress, DSA code submissions, notes, or study hours.
 - ✅ **Optimistic UI with Automatic Rollbacks**: Frontend state updates render instantly for 60fps responsiveness; on any network or server failure, state automatically snapshots and rolls back with an actionable toast alert.
-- ✅ **Sliding-Window IP Rate Limiter**: Custom `RateLimitingFilter` enforces 10 req/min on authentication endpoints (`/api/users/**`) and 120 req/min across general APIs, returning HTTP 429 with RFC-compliant `Retry-After` headers.
+- ✅ **Sliding-Window IP Rate Limiter**: Custom `RateLimitingFilter` enforces 10 req/min on authentication endpoints (`/api/users/**`), 20 req/min on AI endpoints (`/api/chat`, `/api/career`), and 120 req/min across general APIs, returning HTTP 429 with RFC-compliant `Retry-After` headers. Proxy headers (`X-Forwarded-For`) are untrusted by default to prevent IP spoofing unless explicitly enabled (`rate-limiter.trust-proxy-headers=true`).
 - ✅ **Model Context Protocol (MCP) JSON-RPC 2.0 Server**: Standard MCP protocol handler at `POST /api/mcp/rpc` (`tools/list` and `tools/call`) with JSON Schema input validation, plus developer REST endpoints (`/api/tools/**`).
 - ✅ **Live GitHub API Integration**: Dedicated `GitHubService` with in-memory TTL caching (15 minutes) and strict error propagation (HTTP 429/503) instead of fake repository mocking.
 - ✅ **Spring Boot Actuator**: Dedicated `/actuator/health` and `/actuator/info` endpoints for cloud load balancer liveness probes, with protected management metrics.
-- ✅ **Python GenAI & RAG Subsystem**: Real dense vector retrieval powered by Sentence-Transformers (`all-MiniLM-L6-v2`, 384 dimensions) and FAISS (`IndexFlatIP`) with strict physical tenant isolation (`storage/users/{user_id}/`), sliding-window sentence-boundary chunking, and grounded Gemini answers with exact page citations.
+- ✅ **Python GenAI & RAG Subsystem**: Real dense vector retrieval powered by Sentence-Transformers (`all-MiniLM-L6-v2`, 384 dimensions) and FAISS (`IndexFlatIP`) with strict physical tenant isolation (`storage/users/{user_id}/`), internal token security (`X-Internal-Token`), path-traversal input sanitization, sliding-window sentence-boundary chunking, and grounded Gemini answers with exact page citations.
 - ✅ **SSRF-Safe AI & Career Subsystem**: Server-side request validation (`SsrfProtectionValidator`) rigorously rejects loopback (`127.0.0.0/8`, `::1`), link-local (`169.254.0.0/16`), site-local RFC 1918 private IPs (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), and cloud metadata endpoints (`169.254.169.254`) with bounded content parsing before invoking Google Gemini LLM.
 - ✅ **Unified Authoritative Architecture**: Single Spring Boot REST API orchestrating authentication, rate limiting, PostgreSQL persistence, MCP JSON-RPC, and GenAI proxying without duplicate serverless or Express layers.
-- ✅ **IR Retrieval Benchmark Harness**: Automated 16-question evaluation suite calculating real Precision@K, Recall@K, and Mean Reciprocal Rank (MRR).
-
+- ✅ **IR Retrieval Benchmark Harness**: Automated 16-question evaluation suite calculating mathematically rigorous HitRate@K, Precision@K, Recall@K, and Mean Reciprocal Rank (MRR).
 
 ---
 
@@ -94,19 +93,19 @@ CodeMentor is engineered with strict production standards, verified data persist
 CodeMentor features a dedicated Python GenAI microservice (`python-rag/`) integrated seamlessly behind the Spring Boot API Gateway:
 
 ```
-[Browser Client (React)] 
+[Browser Client (React 19)] 
       │ (Bearer JWT)
       ▼
-[Spring Boot 4.1 Gateway] ──(Validates JWT & Injects Authenticated user_id)──► [Python FastAPI Microservice]
-                                                                                        │
-                        ┌───────────────────────────────────────────────────────────────┴───────────────────────┐
-                        ▼                                                                                       ▼
-         [Document Processing Pipeline]                                                           [RAG Query Pipeline]
-        • PDF (pypdf), DOCX, TXT, MD                                                             • Query Vectorization (384-dim)
-        • Sliding Window (600 char, 60 overlap)                                                  • FAISS Tenant Partition
-        • Sentence Boundary Snap                                                                 • Cosine Sim Threshold (>= 0.25)
-        • all-MiniLM-L6-v2 (L2 Normalized)                                                       • Grounded Gemini Prompt
-        • Isolated storage/users/{user_id}/                                                      • Exact Bracket Citations [doc, p.X]
+[Spring Boot 4.1 Gateway] ──(Validates JWT & Injects Authenticated user_id + X-Internal-Token)──► [Python FastAPI Microservice]
+                                                                                                        │
+                        ┌───────────────────────────────────────────────────────────────────────────────┴───────────────────────┐
+                        ▼                                                                                                       ▼
+         [Document Processing Pipeline]                                                                           [RAG Query Pipeline]
+        • PDF (pypdf), DOCX, TXT, MD                                                                             • Query Vectorization (384-dim)
+        • Sliding Window (600 char, 60 overlap)                                                                  • FAISS Tenant Partition
+        • Sentence Boundary Snap                                                                                 • Cosine Sim Threshold (>= 0.25)
+        • all-MiniLM-L6-v2 (L2 Normalized)                                                                       • Grounded Gemini Prompt
+        • Isolated storage/users/{user_id}/                                                                      • Exact Bracket Citations [doc, p.X]
 ```
 
 ### 🔬 Technical Deep-Dive Documentation:
@@ -118,9 +117,12 @@ CodeMentor features a dedicated Python GenAI microservice (`python-rag/`) integr
 - ✂️ [**Chunking Strategies**](docs/CHUNKING.md) — Sliding window, boundary preservation, context fragmentation vs dilution.
 - 🛡️ [**Tenant Security & Data Isolation**](docs/SECURITY.md) — Zero cross-tenant leakage threat model & test proofs.
 
-### 🧪 Automated Test Verification (61 Total Tests Passing)
-- **Spring Boot Backend**: 52 passing automated tests (`.\mvnw.cmd test`) covering security, multi-tenant user isolation, registration conflicts (HTTP 409), authentication failures (HTTP 401), validation (HTTP 400), pagination, and proxy routing.
-- **Python RAG Microservice**: 9 passing automated tests (`pytest python-rag/tests/`) covering sliding-window chunking, L2 normalized embeddings, FAISS CRUD, API lifecycle, and **strict multi-tenant isolation** (User A's documents are 100% inaccessible to User B).
+### 🧪 Automated Test Verification (76 Total Tests Passing)
+- **Spring Boot Backend**: 65 passing automated tests (`./mvnw clean verify`) covering security, JWT authentication, unauthenticated rejection of AI endpoints, rate limiting with proxy trust validation, registration conflicts (HTTP 409), validation (HTTP 400), pagination, and RAG proxy routing.
+- **Python RAG Microservice**: 11 passing automated tests (`pytest`) covering sliding-window chunking, L2 normalized embeddings, FAISS CRUD, API lifecycle, internal service token authentication (`X-Internal-Token`), path traversal sanitization, and **strict multi-tenant isolation** (User A's documents are 100% inaccessible to User B).
+
+### ⚖️ Architectural Trade-off: FAISS Index Deletions
+FAISS `IndexFlatIP` maintains contiguous flat memory buffers for inner-product vector similarity. Because `IndexFlatIP` does not support in-place random vector deletion without maintaining auxiliary ID-mapping structures (`IndexIDMap2`) that increase memory footprint, deleting a document purges chunk metadata and re-embeds the remaining chunks to reconstruct the user's isolated index. For personal developer knowledge bases (<10,000 chunks), rebuilding in memory executes in under 20ms while preserving zero fragment overhead.
 
 
 ---

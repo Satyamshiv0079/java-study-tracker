@@ -91,8 +91,9 @@ class RateLimitingFilterTest {
     }
 
     @Test
-    @DisplayName("Should extract client IP from X-Forwarded-For behind reverse proxy")
+    @DisplayName("Should extract client IP from X-Forwarded-For behind reverse proxy when trustProxyHeaders is true")
     void shouldExtractFromXForwardedFor() throws Exception {
+        filter.setTrustProxyHeaders(true);
         for (int i = 0; i < RateLimitingFilter.AUTH_LIMIT; i++) {
             MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/users/login");
             request.addHeader("X-Forwarded-For", "203.0.113.195, 70.41.3.18");
@@ -108,5 +109,55 @@ class RateLimitingFilterTest {
 
         filter.doFilterInternal(blockedRequest, blockedResponse, new MockFilterChain());
         assertEquals(429, blockedResponse.getStatus());
+    }
+
+    @Test
+    @DisplayName("Should ignore spoofed X-Forwarded-For when trustProxyHeaders is false")
+    void shouldIgnoreSpoofedXForwardedForByDefault() throws Exception {
+        filter.setTrustProxyHeaders(false);
+        // Attacker attempts to bypass rate limit by sending varying X-Forwarded-For headers
+        for (int i = 0; i < RateLimitingFilter.AUTH_LIMIT; i++) {
+            MockHttpServletRequest request = new MockHttpServletRequest("POST", "/api/users/login");
+            request.addHeader("X-Forwarded-For", "1.2.3." + i);
+            request.setRemoteAddr("198.51.100.5");
+            MockHttpServletResponse response = new MockHttpServletResponse();
+            filter.doFilterInternal(request, response, new MockFilterChain());
+            assertEquals(200, response.getStatus());
+        }
+
+        // 11th request from same remote address must be blocked even with another X-Forwarded-For
+        MockHttpServletRequest blocked = new MockHttpServletRequest("POST", "/api/users/login");
+        blocked.addHeader("X-Forwarded-For", "1.2.3.99");
+        blocked.setRemoteAddr("198.51.100.5");
+        MockHttpServletResponse blockedResponse = new MockHttpServletResponse();
+        filter.doFilterInternal(blocked, blockedResponse, new MockFilterChain());
+        assertEquals(429, blockedResponse.getStatus());
+    }
+
+    @Test
+    @DisplayName("Should enforce AI rate limit and reset all logs including AI")
+    void shouldRateLimitAiAndReset() throws Exception {
+        for (int i = 0; i < RateLimitingFilter.AI_LIMIT; i++) {
+            MockHttpServletRequest req = new MockHttpServletRequest("POST", "/api/chat");
+            req.setRemoteAddr("192.168.1.50");
+            MockHttpServletResponse res = new MockHttpServletResponse();
+            filter.doFilterInternal(req, res, new MockFilterChain());
+            assertEquals(200, res.getStatus());
+        }
+
+        // Exceeded
+        MockHttpServletRequest blocked = new MockHttpServletRequest("POST", "/api/chat");
+        blocked.setRemoteAddr("192.168.1.50");
+        MockHttpServletResponse blockedRes = new MockHttpServletResponse();
+        filter.doFilterInternal(blocked, blockedRes, new MockFilterChain());
+        assertEquals(429, blockedRes.getStatus());
+
+        // Reset clears AI logs
+        filter.reset();
+        MockHttpServletRequest afterReset = new MockHttpServletRequest("POST", "/api/chat");
+        afterReset.setRemoteAddr("192.168.1.50");
+        MockHttpServletResponse afterResetRes = new MockHttpServletResponse();
+        filter.doFilterInternal(afterReset, afterResetRes, new MockFilterChain());
+        assertEquals(200, afterResetRes.getStatus());
     }
 }

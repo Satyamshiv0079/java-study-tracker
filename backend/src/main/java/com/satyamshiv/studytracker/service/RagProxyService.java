@@ -29,6 +29,17 @@ public class RagProxyService {
     @Value("${rag.service.url:http://localhost:8000}")
     private String ragServiceUrl;
 
+    @Value("${rag.service.token:codementor-internal-rag-service-token-2026}")
+    private String ragServiceToken;
+
+    private HttpHeaders createAuthHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        if (ragServiceToken != null && !ragServiceToken.isBlank()) {
+            headers.set("X-Internal-Token", ragServiceToken);
+        }
+        return headers;
+    }
+
     public Map<String, Object> checkHealth() {
         try {
             String url = ragServiceUrl + "/health";
@@ -51,7 +62,7 @@ public class RagProxyService {
         try {
             String url = ragServiceUrl + "/documents/upload";
 
-            HttpHeaders headers = new HttpHeaders();
+            HttpHeaders headers = createAuthHeaders();
             headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
@@ -82,7 +93,8 @@ public class RagProxyService {
     public Map<String, Object> listDocuments(Long userId) {
         try {
             String url = ragServiceUrl + "/documents?user_id=" + userId;
-            ResponseEntity<Map> resp = restTemplate.getForEntity(url, Map.class);
+            HttpEntity<?> requestEntity = new HttpEntity<>(createAuthHeaders());
+            ResponseEntity<Map> resp = restTemplate.exchange(url, HttpMethod.GET, requestEntity, Map.class);
             return resp.getBody();
         } catch (ResourceAccessException e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "RAG microservice offline");
@@ -92,7 +104,8 @@ public class RagProxyService {
     public Map<String, Object> deleteDocument(Long userId, String documentId) {
         try {
             String url = ragServiceUrl + "/documents/" + documentId + "?user_id=" + userId;
-            ResponseEntity<Map> resp = restTemplate.exchange(url, HttpMethod.DELETE, null, Map.class);
+            HttpEntity<?> requestEntity = new HttpEntity<>(createAuthHeaders());
+            ResponseEntity<Map> resp = restTemplate.exchange(url, HttpMethod.DELETE, requestEntity, Map.class);
             return resp.getBody();
         } catch (HttpClientErrorException e) {
             throw new ResponseStatusException(e.getStatusCode(), e.getResponseBodyAsString());
@@ -111,7 +124,7 @@ public class RagProxyService {
             payload.put("top_k", queryDto.getTopK() != null ? queryDto.getTopK() : 4);
             payload.put("debug_mode", Boolean.TRUE.equals(queryDto.getDebugMode()));
 
-            HttpHeaders headers = new HttpHeaders();
+            HttpHeaders headers = createAuthHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(payload, headers);
@@ -127,7 +140,8 @@ public class RagProxyService {
     public Map<String, Object> debugQuery(Long userId, String question) {
         try {
             String url = ragServiceUrl + "/rag/debug?user_id=" + userId + "&question=" + question;
-            ResponseEntity<Map> resp = restTemplate.getForEntity(url, Map.class);
+            HttpEntity<?> requestEntity = new HttpEntity<>(createAuthHeaders());
+            ResponseEntity<Map> resp = restTemplate.exchange(url, HttpMethod.GET, requestEntity, Map.class);
             return resp.getBody();
         } catch (ResourceAccessException e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "RAG microservice offline");
@@ -138,7 +152,8 @@ public class RagProxyService {
         try {
             int k = (topK != null && topK > 0) ? topK : 4;
             String url = ragServiceUrl + "/rag/evaluate?user_id=" + userId + "&top_k=" + k;
-            ResponseEntity<Map> resp = restTemplate.postForEntity(url, null, Map.class);
+            HttpEntity<?> requestEntity = new HttpEntity<>(createAuthHeaders());
+            ResponseEntity<Map> resp = restTemplate.postForEntity(url, requestEntity, Map.class);
             return resp.getBody();
         } catch (ResourceAccessException e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "RAG microservice offline");

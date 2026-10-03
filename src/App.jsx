@@ -274,16 +274,29 @@ export default function App() {
   };
 
   async function handleGetReview() {
+    if (!currentUser?.token) {
+      setAuthModalIsLogin(true);
+      setIsAuthModalOpen(true);
+      return;
+    }
     setIsReviewing(true);
     setReviewOutput('');
     try {
-      const apiUrl = import.meta.env.PROD ? '/api/career' : 'http://localhost:3001/api/career';
+      const apiUrl = `${API_BASE}/api/career`;
       const prompt = `Review this Java code:\n\`\`\`java\n${sandboxCode}\n\`\`\``;
       const res = await fetch(apiUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${currentUser.token}`
+        },
         body: JSON.stringify({ type: "code_review", text: prompt, targetRole: "Java Engineer" })
       });
+      if (res.status === 401) {
+        setAuthModalIsLogin(true);
+        setIsAuthModalOpen(true);
+        throw new Error("Authentication session expired or invalid. Please sign in.");
+      }
       const data = await res.json();
       setReviewOutput(data.feedback ? `Time: ${data.timeComplexity} | Space: ${data.spaceComplexity}\n${data.feedback}` : JSON.stringify(data, null, 2));
     } catch (err) {
@@ -294,6 +307,11 @@ export default function App() {
   }
 
   async function handleSendMessage() {
+    if (!currentUser?.token) {
+      setAuthModalIsLogin(true);
+      setIsAuthModalOpen(true);
+      return;
+    }
     if (!chatInput.trim() || isGenerating) return;
     const userMsg = chatInput;
     const nextMessages = [...chatMessages, { sender: 'user', text: userMsg }];
@@ -310,13 +328,21 @@ export default function App() {
       const apiUrl = `${API_BASE}/api/chat`;
       const response = await fetch(apiUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${currentUser.token}`
+        },
         body: JSON.stringify({
           activeDayTitle: `Day ${activeDay} - ${dayData?.title || 'Unknown'}`,
-          userState: { completedDays, completedDsa, studyHours },
           historyContent
         })
       });
+
+      if (response.status === 401) {
+        setAuthModalIsLogin(true);
+        setIsAuthModalOpen(true);
+        throw new Error("Authentication required or expired. Please sign in.");
+      }
 
       const data = await response.json();
       if (data.error) throw new Error(data.error.message);
@@ -473,6 +499,8 @@ export default function App() {
                   handleGetReview={handleGetReview}
                   isReviewing={isReviewing}
                   reviewOutput={reviewOutput}
+                  currentUser={currentUser}
+                  onOpenAuth={() => { setAuthModalIsLogin(true); setIsAuthModalOpen(true); }}
                 />
               )}
 
@@ -481,6 +509,8 @@ export default function App() {
                   vivaScore={vivaScore}
                   setVivaScore={() => {}}
                   onRecordViva={onRecordVivaAttempt}
+                  currentUser={currentUser}
+                  onOpenAuth={() => { setAuthModalIsLogin(true); setIsAuthModalOpen(true); }}
                 />
               )}
 
@@ -514,7 +544,10 @@ export default function App() {
               )}
 
               {currentTab === 'career' && (
-                <CareerHubTab />
+                <CareerHubTab
+                  currentUser={currentUser}
+                  onOpenAuth={() => { setAuthModalIsLogin(true); setIsAuthModalOpen(true); }}
+                />
               )}
 
               {currentTab === 'mentor' && (

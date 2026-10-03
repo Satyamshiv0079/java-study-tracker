@@ -1,9 +1,11 @@
+import re
 import uuid
 from datetime import datetime, timezone
 from typing import Optional
 import faiss
-from fastapi import FastAPI, UploadFile, File, Form, Query, HTTPException, status
+from fastapi import FastAPI, UploadFile, File, Form, Query, HTTPException, status, Security, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security.api_key import APIKeyHeader
 
 from config import settings
 from models.schemas import (
@@ -37,6 +39,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Internal Service Token Security
+api_key_header = APIKeyHeader(name="X-Internal-Token", auto_error=False)
+
+def verify_internal_token(token: Optional[str] = Security(api_key_header)):
+    expected = settings.INTERNAL_SERVICE_TOKEN
+    if expected and token != expected:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Unauthorized: Invalid or missing internal service token (X-Internal-Token)."
+        )
+
+USER_ID_REGEX = re.compile(r"^[a-zA-Z0-9_\-]+$")
+
+def sanitize_user_id(user_id: str) -> str:
+    if not user_id or not USER_ID_REGEX.match(user_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid user_id: Only alphanumeric characters, hyphens, and underscores are permitted to prevent path traversal."
+        )
+    return user_id
+
 # Initialize service singletons
 embedding_service = EmbeddingService()
 vector_store = VectorStore()
@@ -58,7 +81,7 @@ def health_check():
         embedding_dim=settings.EMBEDDING_DIMENSION
     )
 
-@app.post("/documents/upload", response_model=DocumentMetadata, status_code=status.HTTP_201_CREATED, tags=["Knowledge Base"])
+@app.post("/documents/upload", response_model=DocumentMetadata, status_code=status.HTTP_201_CREATED, tags=["Knowledge Base"], dependencies=[Security(verify_internal_token)])
 async def upload_document(
     file: UploadFile = File(..., description="Document file (.pdf, .docx, .txt, .md)"),
     user_id: str = Form(..., description="Authenticated tenant/user ID for isolated storage")
@@ -66,6 +89,8 @@ async def upload_document(
     """
     Uploads, parses, chunks, embeds, and indexes a technical document in the user's isolated FAISS index.
     """
+    user_id = sanitize_user_id(user_id)
+
     if not file.filename:
         raise HTTPException(status_code=400, detail="Missing filename")
 
@@ -129,15 +154,16 @@ async def upload_document(
 
     return doc_metadata
 
-@app.get("/documents", response_model=DocumentListResponse, tags=["Knowledge Base"])
+@app.get("/documents", response_model=DocumentListResponse, tags=["Knowledge Base"], dependencies=[Security(verify_internal_token)])
 def list_documents(user_id: str = Query(..., description="Tenant/User ID")):
     """
     Lists all indexed documents belonging strictly to the requested user.
     """
+    user_id = sanitize_user_id(user_id)
     docs = vector_store.list_documents(user_id=user_id)
     return DocumentListResponse(user_id=user_id, documents=docs)
 
-@app.delete("/documents/{document_id}", response_model=DeleteResponse, tags=["Knowledge Base"])
+@app.delete("/documents/{document_id}", response_model=DeleteResponse, tags=["Knowledge Base"], dependencies=[Security(verify_internal_token)])
 def delete_document(
     document_id: str,
     user_id: str = Query(..., description="Tenant/User ID")
@@ -145,6 +171,7 @@ def delete_document(
     """
     Deletes a document and its chunks from the user's isolated store and rebuilds their FAISS index.
     """
+    user_id = sanitize_user_id(user_id)
     success = vector_store.delete_document(
         user_id=user_id,
         document_id=document_id,
@@ -160,15 +187,17 @@ def delete_document(
         message=f"Document {document_id} and associated vectors successfully purged."
     )
 
-@app.post("/rag/query", response_model=QueryResponse, tags=["RAG Retrieval"])
+@app.post("/rag/query", response_model=QueryResponse, tags=["RAG Retrieval"], dependencies=[Security(verify_internal_token)])
 def rag_query(request: QueryRequest):
     """
     Executes grounded RAG: retrieves relevant chunks strictly from the user's partition,
     scores similarity, builds a constrained prompt, and synthesizes an answer with citations.
     """
+    user_id = sanitize_user_id(request.user_id)
+
     # 1. Retrieve top-k citations from isolated user partition
     citations = retriever.retrieve(
-        user_id=request.user_id,
+        user_id=user_id,
         question=request.question,
         top_k=request.top_k or settings.TOP_K
     )
@@ -181,7 +210,7 @@ def rag_query(request: QueryRequest):
 
     debug_info = None
     if request.debug_mode:
-        stats = vector_store.get_user_stats(request.user_id)
+        stats = vector_store.get_user_stats(user_id)
         debug_info = {
             "user_stats": stats,
             "raw_scores": [c.score for c in citations],
@@ -198,7 +227,7 @@ def rag_query(request: QueryRequest):
         debug_info=debug_info
     )
 
-@app.get("/rag/debug", tags=["RAG Retrieval"])
+@app.get("/rag/debug", tags=["RAG Retrieval"], dependencies=[Security(verify_internal_token)])
 def rag_debug(
     user_id: str = Query(..., description="Tenant/User ID"),
     question: str = Query(..., description="Question to debug")
@@ -206,6 +235,7 @@ def rag_debug(
     """
     Diagnostic endpoint inspecting raw cosine similarity scores, vector dimensions, and user stats.
     """
+    user_id = sanitize_user_id(user_id)
     stats = vector_store.get_user_stats(user_id)
     citations = retriever.retrieve(user_id=user_id, question=question, top_k=settings.TOP_K)
     return {
@@ -216,7 +246,7 @@ def rag_debug(
         "citations": [c.model_dump() for c in citations]
     }
 
-@app.post("/rag/evaluate", tags=["Evaluation"])
+@app.post("/rag/evaluate", tags=["Evaluation"], dependencies=[Security(verify_internal_token)])
 def run_evaluation(
     user_id: str = Query(..., description="Tenant/User ID with seeded knowledge base"),
     top_k: int = Query(4, ge=1, le=10)
@@ -224,6 +254,7 @@ def run_evaluation(
     """
     Executes the 16-question information retrieval benchmark calculating Precision@K, Recall@K, and MRR.
     """
+    user_id = sanitize_user_id(user_id)
     metrics = evaluation_harness.run_benchmark(user_id=user_id, top_k=top_k)
     return metrics
 

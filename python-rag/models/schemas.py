@@ -30,7 +30,7 @@ class SourceCitation(BaseModel):
 
 class QueryRequest(BaseModel):
     question: str = Field(..., min_length=1, description="The technical question or prompt")
-    user_id: str = Field(..., min_length=1, description="Unique tenant / user identifier for isolated retrieval")
+    user_id: str = Field(..., min_length=1, pattern=r"^[a-zA-Z0-9_\-]+$", description="Unique tenant / user identifier for isolated retrieval")
     top_k: Optional[int] = Field(None, ge=1, le=20, description="Number of top chunks to retrieve")
     debug_mode: bool = Field(False, description="When true, includes query embedding stats and prompt construction diagnostics")
 

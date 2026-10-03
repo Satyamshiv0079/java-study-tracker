@@ -3,7 +3,7 @@ import { getDaySyllabus } from '../data/syllabus';
 import { Sparkles, MessageSquare, CheckCircle2, HelpCircle, Send, RefreshCw, Trophy, Clock, ArrowRight, Award } from 'lucide-react';
 import { API_BASE } from '../api/client';
 
-export default function InterviewTab({ vivaScore, setVivaScore, onRecordViva }) {
+export default function InterviewTab({ vivaScore, setVivaScore, onRecordViva, currentUser, onOpenAuth }) {
   const [quizTopic, setQuizTopic] = useState('Java Core');
   const [currentQuizIndex, setCurrentQuizIndex] = useState(0);
 
@@ -44,6 +44,10 @@ export default function InterviewTab({ vivaScore, setVivaScore, onRecordViva }) 
   };
 
   async function handleEvaluateAnswer() {
+    if (!currentUser?.token) {
+      if (onOpenAuth) onOpenAuth();
+      return;
+    }
     if (!userAnswerInput.trim()) return;
 
     setIsEvaluating(true);
@@ -74,13 +78,21 @@ Return ONLY a JSON object:
 
       const res = await fetch(apiUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${currentUser.token}`
+        },
         body: JSON.stringify({
           type: "interview_eval",
           text: prompt,
           targetRole: "Java Backend Engineer"
         })
       });
+
+      if (res.status === 401) {
+        if (onOpenAuth) onOpenAuth();
+        throw new Error("Authentication session expired. Please sign in again.");
+      }
 
       const data = await res.json();
       setAiEvaluation(data);

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Briefcase, FileText, Sparkles, CheckCircle, AlertTriangle, Copy, ArrowRight, BookOpen, UserCheck, Search, Upload, Link as LinkIcon, X, FileCheck } from 'lucide-react';
 import { API_BASE } from '../api/client';
 
-export default function CareerHubTab() {
+export default function CareerHubTab({ currentUser, onOpenAuth }) {
   const [subTab, setSubTab] = useState('resume'); // 'resume' | 'linkedin'
   const [inputMode, setInputMode] = useState('file'); // 'file' | 'text' | 'url'
   const [targetRole, setTargetRole] = useState('Java Backend Engineer');
@@ -73,6 +73,12 @@ Project Developer - Java Study Tracker (2026)
   }
 
   async function handleAnalyze() {
+    if (!currentUser?.token) {
+      if (onOpenAuth) onOpenAuth();
+      setErrorMessage("Please sign in or register to run AI Career Analysis.");
+      return;
+    }
+
     if (!inputText.trim() && !fileData && !urlInput.trim()) {
       setErrorMessage("Please upload a PDF, paste text, or provide a URL before analyzing.");
       return;
@@ -86,7 +92,10 @@ Project Developer - Java Study Tracker (2026)
       const apiUrl = `${API_BASE}/api/career`;
       const response = await fetch(apiUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${currentUser.token}`
+        },
         body: JSON.stringify({
           type: subTab,
           text: inputText,
@@ -96,6 +105,11 @@ Project Developer - Java Study Tracker (2026)
           targetRole: targetRole
         })
       });
+
+      if (response.status === 401) {
+        if (onOpenAuth) onOpenAuth();
+        throw new Error("Authentication session expired. Please sign in again.");
+      }
 
       const data = await response.json();
       if (data.error) {

@@ -137,8 +137,13 @@ class EvaluationHarness:
             p_at_k = relevant_retrieved / top_k if top_k > 0 else 0.0
             precisions.append(p_at_k)
 
-            # Recall@K estimate (assuming at least 1 relevant chunk exists in knowledge base)
-            r_at_k = 1.0 if relevant_retrieved >= 1 else 0.0
+            # HitRate@K (Success@K) = 1.0 if >=1 relevant item retrieved, else 0.0
+            hit_at_k = 1.0 if relevant_retrieved >= 1 else 0.0
+
+            # Recall@K = (relevant retrieved) / (total ground truth relevant items)
+            # Default ground truth target relevant count is 1 for targeted concept queries
+            ground_truth_relevant = item.get("ground_truth_relevant_count", 1)
+            r_at_k = min(1.0, relevant_retrieved / ground_truth_relevant) if ground_truth_relevant > 0 else 0.0
             recalls.append(r_at_k)
 
             # Reciprocal Rank = 1 / rank
@@ -150,6 +155,7 @@ class EvaluationHarness:
                 "question": question,
                 "top_k_retrieved": len(citations),
                 "relevant_count": relevant_retrieved,
+                "hit_rate_at_k": round(hit_at_k, 3),
                 "precision_at_k": round(p_at_k, 3),
                 "recall_at_k": round(r_at_k, 3),
                 "first_relevant_rank": first_relevant_rank,
@@ -159,11 +165,13 @@ class EvaluationHarness:
         num_q = len(BENCHMARK_QUESTIONS)
         mean_precision = sum(precisions) / num_q if num_q else 0.0
         mean_recall = sum(recalls) / num_q if num_q else 0.0
+        mean_hit_rate = sum(1.0 for r in results if r["hit_rate_at_k"] > 0) / num_q if num_q else 0.0
         mrr = sum(reciprocal_ranks) / num_q if num_q else 0.0
 
         return {
             "total_benchmark_questions": num_q,
             "top_k": top_k,
+            "mean_hit_rate_at_k": round(mean_hit_rate, 4),
             "mean_precision_at_k": round(mean_precision, 4),
             "mean_recall_at_k": round(mean_recall, 4),
             "mean_reciprocal_rank_mrr": round(mrr, 4),

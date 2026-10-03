@@ -297,6 +297,58 @@ class SecurityIntegrationTest {
                         .content("{\"question\":\"What is JVM?\"}"))
                 .andExpect(status().isUnauthorized());
     }
+
+    @Test
+    @DisplayName("Protected AI endpoint /api/chat should return 401 Unauthorized when unauthenticated")
+    void protectedChatShouldRejectUnauthenticated() throws Exception {
+        mockMvc.perform(post("/api/chat")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"activeDayTitle\":\"Day 1\",\"historyContent\":[]}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("Protected AI endpoint /api/career should return 401 Unauthorized when unauthenticated")
+    void protectedCareerShouldRejectUnauthenticated() throws Exception {
+        mockMvc.perform(post("/api/career")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"type\":\"resume\",\"text\":\"Java Backend Developer\"}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("Protected AI endpoints should allow authenticated users with JWT")
+    void protectedAiEndpointsShouldAllowAuthenticated() throws Exception {
+        com.satyamshiv.studytracker.model.User user = userRepository.save(com.satyamshiv.studytracker.model.User.builder()
+                .username("aiUser")
+                .email("ai@test.com")
+                .password("hash123")
+                .role("ROLE_USER")
+                .build());
+
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername(), user.getRole());
+
+        // Authenticated request passes security filter chain (does not return 401/403)
+        mockMvc.perform(post("/api/chat")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"activeDayTitle\":\"Day 1\",\"historyContent\":[]}"))
+                .andExpect(result -> {
+                    int status = result.getResponse().getStatus();
+                    org.junit.jupiter.api.Assertions.assertNotEquals(401, status);
+                    org.junit.jupiter.api.Assertions.assertNotEquals(403, status);
+                });
+
+        mockMvc.perform(post("/api/career")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"type\":\"resume\",\"text\":\"Java developer\"}"))
+                .andExpect(result -> {
+                    int status = result.getResponse().getStatus();
+                    org.junit.jupiter.api.Assertions.assertNotEquals(401, status);
+                    org.junit.jupiter.api.Assertions.assertNotEquals(403, status);
+                });
+    }
 }
 
 

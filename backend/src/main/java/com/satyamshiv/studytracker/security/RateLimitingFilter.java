@@ -30,6 +30,9 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     public static final int GENERAL_LIMIT = 120;       // 120 requests per minute for general API
     public static final long WINDOW_MS = 60_000L;      // 1 minute sliding window
 
+    @org.springframework.beans.factory.annotation.Value("${rate-limiter.trust-proxy-headers:false}")
+    private boolean trustProxyHeaders;
+
     // IP -> Deque of request timestamps (epoch ms)
     private final Map<String, Deque<Long>> authRequestLog = new ConcurrentHashMap<>();
     private final Map<String, Deque<Long>> aiRequestLog = new ConcurrentHashMap<>();
@@ -129,17 +132,24 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     }
 
     private String extractClientIp(HttpServletRequest request) {
-        String xForwardedFor = request.getHeader("X-Forwarded-For");
-        if (xForwardedFor != null && !xForwardedFor.isBlank()) {
-            // First IP in list is the original client behind reverse proxies (Render, Cloudflare, AWS ALB)
-            return xForwardedFor.split(",")[0].trim();
+        if (trustProxyHeaders) {
+            String xForwardedFor = request.getHeader("X-Forwarded-For");
+            if (xForwardedFor != null && !xForwardedFor.isBlank()) {
+                // First IP in list is the original client behind reverse proxies (Render, Cloudflare, AWS ALB)
+                return xForwardedFor.split(",")[0].trim();
+            }
         }
         return request.getRemoteAddr() != null ? request.getRemoteAddr() : "unknown";
+    }
+
+    public void setTrustProxyHeaders(boolean trustProxyHeaders) {
+        this.trustProxyHeaders = trustProxyHeaders;
     }
 
     // Helper for testing
     public void reset() {
         authRequestLog.clear();
+        aiRequestLog.clear();
         generalRequestLog.clear();
     }
 }

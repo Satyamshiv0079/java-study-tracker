@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.satyamshiv.studytracker.dto.AiCareerRequest;
 import com.satyamshiv.studytracker.dto.AiChatRequest;
 import com.satyamshiv.studytracker.exception.BusinessRuleException;
+import com.satyamshiv.studytracker.model.DayProgress;
+import com.satyamshiv.studytracker.repository.DayProgressRepository;
+import com.satyamshiv.studytracker.repository.StudySessionRepository;
 import com.satyamshiv.studytracker.security.SsrfProtectionValidator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +25,8 @@ public class AiService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final SsrfProtectionValidator ssrfProtectionValidator;
+    private final DayProgressRepository dayProgressRepository;
+    private final StudySessionRepository studySessionRepository;
 
     @Value("${gemini.api.key:}")
     private String geminiApiKey;
@@ -29,30 +34,58 @@ public class AiService {
     @Value("${gemini.model:gemini-2.5-flash}")
     private String geminiModel;
 
-    public AiService(SsrfProtectionValidator ssrfProtectionValidator) {
+    public AiService(SsrfProtectionValidator ssrfProtectionValidator,
+                     DayProgressRepository dayProgressRepository,
+                     StudySessionRepository studySessionRepository) {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(10_000);
         factory.setReadTimeout(60_000);
         this.restTemplate = new RestTemplate(factory);
         this.ssrfProtectionValidator = ssrfProtectionValidator;
+        this.dayProgressRepository = dayProgressRepository;
+        this.studySessionRepository = studySessionRepository;
     }
 
     /**
-     * Executes interactive mentor chat via Google Gemini LLM.
+     * Executes interactive mentor chat via Google Gemini LLM for authenticated user.
+     * Computes verified study telemetry from database to prevent client spoofing.
      */
-    public Map<String, Object> chat(AiChatRequest request) {
+    public Map<String, Object> chat(Long userId, AiChatRequest request) {
         ensureApiKeyConfigured();
+
+        // Authoritative server-side progress lookup (ignores client-supplied userState)
+        int completedDays = 0;
+        try {
+            completedDays = (int) dayProgressRepository.findByUserId(userId).stream()
+                    .filter(DayProgress::isCompleted)
+                    .count();
+        } catch (Exception e) {
+            log.debug("Telemetry lookup error for user {}: {}", userId, e.getMessage());
+        }
+
+        Long totalMins = null;
+        try {
+            totalMins = studySessionRepository.getTotalStudyMinutes(userId);
+        } catch (Exception e) {
+            log.debug("Study minutes lookup error for user {}: {}", userId, e.getMessage());
+        }
+        double studyHours = totalMins != null ? Math.round((totalMins / 60.0) * 10.0) / 10.0 : 0.0;
+
+        String context = request.getActiveDayTitle() != null ? request.getActiveDayTitle() : "General";
+        String promptContext = String.format(
+                "You are a direct, technically rigorous Software Engineering mentor helping a student prepare for Backend Java-Spring interviews. " +
+                "Do not use overly fluffy language. Keep explanations extremely concise and code-focused. " +
+                "Current syllabus topic: %s. Verified student progress: %d/45 days completed, %.1f study hours logged.",
+                context, completedDays, studyHours
+        );
 
         String url = String.format(
                 "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s",
                 geminiModel, geminiApiKey
         );
 
-        String context = request.getActiveDayTitle() != null ? request.getActiveDayTitle() : "General";
         Map<String, Object> systemInstruction = Map.of(
-                "parts", Map.of("text",
-                        "You are a direct, technically rigorous Software Engineering mentor helping a student prepare for Backend Java-Spring interviews. " +
-                        "Do not use overly fluffy language. Keep explanations extremely concise and code-focused. Current context: " + context + ".")
+                "parts", Map.of("text", promptContext)
         );
 
         Map<String, Object> requestBody = new HashMap<>();
@@ -76,10 +109,10 @@ public class AiService {
     }
 
     /**
-     * Evaluates Resumes, LinkedIn profiles, or Code snippets against target engineering criteria.
+     * Evaluates Resumes, LinkedIn profiles, or Code snippets against target engineering criteria for authenticated user.
      * Uses SSRF-safe URL fetching when external profile/portfolio links are provided.
      */
-    public Map<String, Object> analyzeCareer(AiCareerRequest request) {
+    public Map<String, Object> analyzeCareer(Long userId, AiCareerRequest request) {
         ensureApiKeyConfigured();
 
         String fetchedUrlContent = "";
@@ -91,7 +124,7 @@ public class AiService {
                 } catch (IllegalArgumentException e) {
                     throw new BusinessRuleException("Invalid or blocked URL: " + e.getMessage());
                 } catch (Exception e) {
-                    log.warn("URL Fetch Warning for {}: {}", trimmedUrl, e.getMessage());
+                    log.warn("URL Fetch Warning for user {} ({}) : {}", userId, trimmedUrl, e.getMessage());
                 }
             }
         }

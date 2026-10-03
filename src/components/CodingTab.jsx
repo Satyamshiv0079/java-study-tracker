@@ -9,6 +9,8 @@ export default function CodingTab({
   handleMarkDsaDone,
   sandboxCode,
   setSandboxCode,
+  currentUser,
+  onOpenAuth,
 }) {
   const [isExecuting, setIsExecuting] = useState(false);
   const [executionOutput, setExecutionOutput] = useState(null);
@@ -81,6 +83,14 @@ public class Solution {
   }
 
   async function handleAIReview() {
+    if (!currentUser?.token) {
+      if (onOpenAuth) onOpenAuth();
+      setReviewOutput({
+        feedback: "Please sign in or register to request AI Code Review."
+      });
+      return;
+    }
+
     setIsReviewing(true);
     setReviewOutput(null);
 
@@ -103,13 +113,21 @@ Evaluate and return ONLY a JSON object:
 
       const res = await fetch(apiUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${currentUser.token}`
+        },
         body: JSON.stringify({
           type: "code_review",
           text: prompt,
           targetRole: "Java Engineer"
         })
       });
+
+      if (res.status === 401) {
+        if (onOpenAuth) onOpenAuth();
+        throw new Error("Authentication session expired. Please sign in again.");
+      }
 
       const data = await res.json();
       setReviewOutput(data);

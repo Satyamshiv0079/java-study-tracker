@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     DEBUG: bool = False
+    INTERNAL_SERVICE_TOKEN: str = os.getenv("RAG_INTERNAL_TOKEN", "codementor-internal-rag-service-token-2026")
 
     # Gemini LLM Settings
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
