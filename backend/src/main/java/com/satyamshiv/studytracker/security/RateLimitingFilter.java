@@ -89,7 +89,11 @@ public class RateLimitingFilter extends OncePerRequestFilter {
     }
 
     private boolean isAiEndpoint(String path) {
-        return path.equals("/api/chat") || path.equals("/api/career");
+        return path.equals("/api/chat") || path.equals("/api/career")
+                || path.startsWith("/api/rag/query")
+                || path.startsWith("/api/rag/documents/upload")
+                || path.startsWith("/api/rag/evaluate")
+                || path.startsWith("/api/rag/debug");
     }
 
     private synchronized boolean isAllowed(Map<String, Deque<Long>> logMap, String ip, int maxRequests, long now) {

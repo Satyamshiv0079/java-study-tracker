@@ -23,6 +23,17 @@ def test_api_security_unauthorized_without_internal_token():
     resp_invalid = client.get("/documents?user_id=test-user", headers={"X-Internal-Token": "wrong-token"})
     assert resp_invalid.status_code == 401
 
+def test_api_security_unconfigured_token_fails_safely():
+    # If the service has no token configured, it must fail safely with 500, never allowing access
+    original_token = settings.INTERNAL_SERVICE_TOKEN
+    try:
+        settings.INTERNAL_SERVICE_TOKEN = ""
+        resp = client.get("/documents?user_id=test-user", headers={"X-Internal-Token": "some-token"})
+        assert resp.status_code == 500
+        assert "not configured" in resp.json()["detail"]
+    finally:
+        settings.INTERNAL_SERVICE_TOKEN = original_token
+
 def test_api_security_path_traversal_rejected():
     # Calling protected endpoint with path traversal in user_id should return 400
     traversal_ids = ["../traversal", "../../etc/passwd", "user/evil", "user\\evil"]

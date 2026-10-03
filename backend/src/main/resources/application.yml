@@ -38,7 +38,7 @@ management:
 rag:
   service:
     url: ${RAG_SERVICE_URL:http://localhost:8000}
-    token: ${RAG_INTERNAL_TOKEN:codementor-internal-rag-service-token-2026}
+    token: ${RAG_INTERNAL_TOKEN:}
 
 gemini:
   api:

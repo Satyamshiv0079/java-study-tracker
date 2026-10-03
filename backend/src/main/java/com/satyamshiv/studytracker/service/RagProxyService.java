@@ -29,13 +29,15 @@ public class RagProxyService {
     @Value("${rag.service.url:http://localhost:8000}")
     private String ragServiceUrl;
 
-    @Value("${rag.service.token:codementor-internal-rag-service-token-2026}")
+    @Value("${rag.service.token:}")
     private String ragServiceToken;
 
     private HttpHeaders createAuthHeaders() {
         HttpHeaders headers = new HttpHeaders();
         if (ragServiceToken != null && !ragServiceToken.isBlank()) {
             headers.set("X-Internal-Token", ragServiceToken);
+        } else {
+            log.warn("RAG_INTERNAL_TOKEN is not configured in Spring Boot. Microservice requests to Python RAG may fail authentication.");
         }
         return headers;
     }

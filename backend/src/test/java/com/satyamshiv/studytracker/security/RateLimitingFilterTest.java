@@ -160,4 +160,23 @@ class RateLimitingFilterTest {
         filter.doFilterInternal(afterReset, afterResetRes, new MockFilterChain());
         assertEquals(200, afterResetRes.getStatus());
     }
+
+    @Test
+    @DisplayName("Should enforce AI rate limit on RAG query endpoints")
+    void shouldRateLimitRagQueryUnderAiLimit() throws Exception {
+        for (int i = 0; i < RateLimitingFilter.AI_LIMIT; i++) {
+            MockHttpServletRequest req = new MockHttpServletRequest("POST", "/api/rag/query");
+            req.setRemoteAddr("192.168.1.55");
+            MockHttpServletResponse res = new MockHttpServletResponse();
+            filter.doFilterInternal(req, res, new MockFilterChain());
+            assertEquals(200, res.getStatus());
+        }
+
+        // Exceeded
+        MockHttpServletRequest blocked = new MockHttpServletRequest("POST", "/api/rag/query");
+        blocked.setRemoteAddr("192.168.1.55");
+        MockHttpServletResponse blockedRes = new MockHttpServletResponse();
+        filter.doFilterInternal(blocked, blockedRes, new MockFilterChain());
+        assertEquals(429, blockedRes.getStatus());
+    }
 }

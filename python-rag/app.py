@@ -1,3 +1,4 @@
+import hmac
 import re
 import uuid
 from datetime import datetime, timezone
@@ -44,7 +45,12 @@ api_key_header = APIKeyHeader(name="X-Internal-Token", auto_error=False)
 
 def verify_internal_token(token: Optional[str] = Security(api_key_header)):
     expected = settings.INTERNAL_SERVICE_TOKEN
-    if expected and token != expected:
+    if not expected:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Server configuration error: RAG_INTERNAL_TOKEN is not configured on the service."
+        )
+    if not token or not hmac.compare_digest(token, expected):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Unauthorized: Invalid or missing internal service token (X-Internal-Token)."
