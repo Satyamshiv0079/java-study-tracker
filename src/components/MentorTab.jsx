@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Sparkles, Send, Copy, Check, FileText, Upload, Trash2, Database,
-  Search, ShieldAlert, Cpu, BarChart2, BookOpen, AlertCircle, RefreshCw
+  Search, ShieldAlert, Cpu, BarChart2, AlertCircle, RefreshCw
 } from 'lucide-react';
 import {
   fetchRagDocuments,

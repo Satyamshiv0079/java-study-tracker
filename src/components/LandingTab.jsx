@@ -10,16 +10,12 @@ import {
   BarChart3, 
   Briefcase, 
   ShieldCheck, 
-  CheckCircle2, 
-  Cpu, 
   Terminal,
   Flame,
-  Clock,
-  Layers,
   Zap
 } from 'lucide-react';
 
-export default function LandingTab({ onExploreDemo, onOpenAuth, currentUser }) {
+export default function LandingTab({ onExploreDemo, onOpenAuth }) {
   const capabilities = [
     {
       icon: BookOpen,

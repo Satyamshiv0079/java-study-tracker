@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  BarChart, Bar, Legend, PieChart, Pie, Cell
+  BarChart, Bar
 } from 'recharts';
-import { Database, TrendingUp, Award, Clock, CheckCircle2, Flame, AlertTriangle, ArrowRight, Sparkles } from 'lucide-react';
-import { getDaySyllabus } from '../data/syllabus';
+import { Database, TrendingUp, Award, Clock, Flame, AlertTriangle, Sparkles } from 'lucide-react';
 
 export default function AnalyticsTab({
   completedDays,

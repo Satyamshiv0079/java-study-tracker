@@ -1,4 +1,4 @@
-package com.satyamshiv.studytracker.controller;
+package com.satyamshiv.studytracker.dto;
 
 import lombok.Data;
 

@@ -2,22 +2,16 @@ import React from 'react';
 import {
   LayoutDashboard,
   Map,
-  BookOpen,
   Code2,
-  Terminal,
   Mic2,
-  HelpCircle,
   FolderKanban,
   BarChart3,
   Trophy,
   Briefcase,
   Sparkles,
   LogOut,
-  User,
   X,
-  ChevronRight,
   Flame,
-  CheckCircle2,
   Sun,
   Moon
 } from 'lucide-react';

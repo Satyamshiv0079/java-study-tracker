@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Mail, ShieldCheck, Database, LogOut, X, CheckCircle2, Award, Clock, Code2 } from 'lucide-react';
+import { User, Mail, ShieldCheck, Database, LogOut, X, CheckCircle2 } from 'lucide-react';
 
 export default function ProfileModal({ isOpen, onClose, currentUser, onLogout, completedDays, studyHours, completedDsa }) {
   if (!isOpen || !currentUser) return null;

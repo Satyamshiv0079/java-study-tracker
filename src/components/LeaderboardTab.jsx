@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Trophy, Award, Flame, Star, CheckCircle2, Clock, Code2, ShieldCheck, Users, Database } from 'lucide-react';
+import { Trophy, Flame, Users } from 'lucide-react';
 
 export default function LeaderboardTab({ currentUser, completedDays, studyHours, completedDsa, apiBase }) {
   const [dbLeaderboard, setDbLeaderboard] = useState([]);

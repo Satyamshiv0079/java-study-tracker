@@ -1,6 +1,6 @@
 import React from 'react';
 import { getDaySyllabus, getCategoryColor } from '../data/syllabus';
-import { BookOpen, CheckCircle2, Circle, Sparkles, Video, ArrowRight, Code2 } from 'lucide-react';
+import { CheckCircle2, Circle, Sparkles, Video, ArrowRight, Code2 } from 'lucide-react';
 
 
 export default function SyllabusTab({

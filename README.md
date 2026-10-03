@@ -109,17 +109,17 @@ CodeMentor features a dedicated Python GenAI microservice (`python-rag/`) integr
 ```
 
 ### 🔬 Technical Deep-Dive Documentation:
-- 📖 [**HCLTech GenAI Engineer Interview Guide**](docs/HCLTECH_GENAI_INTERVIEW.md) — Top 10 questions, answers, and role-mapping checklist.
-- 📐 [**RAG System Architecture**](docs/RAG_ARCHITECTURE.md) — Ingestion flow, query pipeline, and latency profiles.
-- 🧬 [**Embeddings & Vector Spaces**](docs/EMBEDDINGS.md) — Dense vs sparse, L2 normalization proof, cosine similarity math.
-- ⚡ [**FAISS Vector Indexing**](docs/FAISS.md) — `IndexFlatIP` vs `IVF` vs `HNSW`, scaling tradeoffs, index persistence.
-- 🤖 [**Transformers & Self-Attention**](docs/TRANSFORMERS.md) — Self-attention matrix math ($Q K^T / \sqrt{d_k}$), encoder vs decoder.
-- ✂️ [**Chunking Strategies**](docs/CHUNKING.md) — Sliding window, boundary preservation, context fragmentation vs dilution.
-- 🛡️ [**Tenant Security & Data Isolation**](docs/SECURITY.md) — Zero cross-tenant leakage threat model & test proofs.
+- 📖 [**HCLTech GenAI Engineer Interview Guide**](docs/interview/HCLTECH_GENAI_INTERVIEW.md) — Top 10 questions, answers, and role-mapping checklist.
+- 📐 [**RAG System Architecture**](docs/architecture/RAG_ARCHITECTURE.md) — Ingestion flow, query pipeline, and latency profiles.
+- 🧬 [**Embeddings & Vector Spaces**](docs/architecture/EMBEDDINGS.md) — Dense vs sparse, L2 normalization proof, cosine similarity math.
+- ⚡ [**FAISS Vector Indexing**](docs/architecture/FAISS.md) — `IndexFlatIP` vs `IVF` vs `HNSW`, scaling tradeoffs, index persistence.
+- 🤖 [**Transformers & Self-Attention**](docs/architecture/TRANSFORMERS.md) — Self-attention matrix math ($Q K^T / \sqrt{d_k}$), encoder vs decoder.
+- ✂️ [**Chunking Strategies**](docs/architecture/CHUNKING.md) — Sliding window, boundary preservation, context fragmentation vs dilution.
+- 🛡️ [**Tenant Security & Data Isolation**](docs/security/SECURITY.md) — Zero cross-tenant leakage threat model & test proofs.
 
-### 🧪 Automated Test Verification (76 Total Tests Passing)
-- **Spring Boot Backend**: 65 passing automated tests (`./mvnw clean verify`) covering security, JWT authentication, unauthenticated rejection of AI endpoints, rate limiting with proxy trust validation, registration conflicts (HTTP 409), validation (HTTP 400), pagination, and RAG proxy routing.
-- **Python RAG Microservice**: 11 passing automated tests (`pytest`) covering sliding-window chunking, L2 normalized embeddings, FAISS CRUD, API lifecycle, internal service token authentication (`X-Internal-Token`), path traversal sanitization, and **strict multi-tenant isolation** (User A's documents are 100% inaccessible to User B).
+### 🧪 Automated Test Verification (78 Total Tests Passing)
+- **Spring Boot Backend**: 66 passing automated tests (`./mvnw clean verify`) covering security, JWT authentication, unauthenticated rejection of AI endpoints, rate limiting with proxy trust validation, registration conflicts (HTTP 409), validation (HTTP 400), pagination, and RAG proxy routing.
+- **Python RAG Microservice**: 12 passing automated tests (`pytest`) covering sliding-window chunking, L2 normalized embeddings, FAISS CRUD, API lifecycle, internal service token authentication (`X-Internal-Token`), path traversal sanitization, unconfigured token fail-closed behavior, and **strict multi-tenant isolation** (User A's documents are 100% inaccessible to User B).
 
 ### ⚖️ Architectural Trade-off: FAISS Index Deletions
 FAISS `IndexFlatIP` maintains contiguous flat memory buffers for inner-product vector similarity. Because `IndexFlatIP` does not support in-place random vector deletion without maintaining auxiliary ID-mapping structures (`IndexIDMap2`) that increase memory footprint, deleting a document purges chunk metadata and re-embeds the remaining chunks to reconstruct the user's isolated index. For personal developer knowledge bases (<10,000 chunks), rebuilding in memory executes in under 20ms while preserving zero fragment overhead.
@@ -302,14 +302,14 @@ Response:
 
 ---
 
-## 🧪 Automated Testing Strategy (43 Passing Tests)
+## 🧪 Automated Testing Strategy (66 Passing Tests)
 
-The backend features a comprehensive suite of **43 automated unit, integration, and security tests**:
+The backend features a comprehensive suite of **66 automated unit, integration, and security tests**:
 
 ```bash
 [INFO] Results:
 [INFO] 
-[INFO] Tests run: 43, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 66, Failures: 0, Errors: 0, Skipped: 0
 [INFO] BUILD SUCCESS
 ```
 
