@@ -9,7 +9,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon_Cloud-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://neon.tech/)
 [![Flyway](https://img.shields.io/badge/Flyway-12.4-CC0202?style=for-the-badge&logo=flyway&logoColor=white)](https://flywaydb.org/)
 [![React 19](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![Automated Tests](https://img.shields.io/badge/Tests-76_Passing_(65_Java_+_11_Python)-brightgreen?style=for-the-badge&logo=junit5&logoColor=white)](https://junit.org/junit5/)
+[![Automated Tests](https://img.shields.io/badge/Tests-79_Passing_(67_Java_+_12_Python)-brightgreen?style=for-the-badge&logo=junit5&logoColor=white)](https://junit.org/junit5/)
 
 
 A full-stack placement preparation platform and developer-learning workspace engineered to take software engineers from core Java fundamentals to Spring Boot microservices, high-frequency DSA, mock viva assessments, and portfolio deployment.
@@ -43,8 +43,8 @@ A full-stack placement preparation platform and developer-learning workspace eng
 *Day-by-day Java 17 to Spring Boot progression with structured learning objectives, architectural theory notes, curated video walkthroughs, and syllabus completion toggling.*
 ![Curriculum Roadmap](docs/screenshots/curriculum_roadmap.png)
 
-### 5. DSA Practice Workspace & Java 17 Sandbox
-*Interactive coding environment with LeetCode correlation, real-time code editor, AI code analysis, and live multi-language execution via the Piston JVM engine.*
+### 5. DSA Practice Workspace & Java Sandbox
+*Interactive coding environment with LeetCode correlation, real-time code editor, AI code analysis, and live execution via the external Piston JVM sandbox.*
 ![DSA Workspace](docs/screenshots/dsa_workspace.png)
 
 ### 6. AI Mock Technical Interview & Viva Assessment
@@ -71,15 +71,16 @@ A full-stack placement preparation platform and developer-learning workspace eng
 
 ## 📌 Key Architectural Capabilities & Implementation Highlights
 
-CodeMentor is engineered with strict production standards, verified data persistence, and resilient server-side truth:
+CodeMentor is engineered with verified data persistence and resilient server-side security:
 
 - ✅ **Single Source of Truth**: All student progress (curriculum completion, DSA submissions, study sessions, notes, viva attempts, capstone milestones) persists in PostgreSQL (Neon Cloud) backed by connection pool tuning (HikariCP).
-- ✅ **Spring Security 7 & Fail-Fast JWT**: Stateless JWT token authentication with HMAC-SHA256. Secret keys are strictly validated at boot time (>= 256 bits / 32 bytes) with zero insecure fallback defaults.
+- ✅ **Spring Security & Fail-Fast JWT**: Stateless JWT token authentication with HMAC-SHA256. Secret keys are strictly validated at boot time (>= 256 bits / 32 bytes) with zero insecure fallback defaults.
 - ✅ **Multi-Domain User Isolation (Automated Tests)**: Rigorous database ownership checks ensure User B can never read or mutate User A's progress, DSA code submissions, notes, or study hours.
-- ✅ **Optimistic UI with Automatic Rollbacks**: Frontend state updates render instantly for 60fps responsiveness; on any network or server failure, state automatically snapshots and rolls back with an actionable toast alert.
+- ✅ **Optimistic UI with Automatic Rollbacks**: Frontend state updates render optimistically for immediate feedback; on any network or server failure, state automatically snapshots and rolls back with an actionable toast alert.
 - ✅ **Sliding-Window IP Rate Limiter**: Custom `RateLimitingFilter` enforces 10 req/min on authentication endpoints (`/api/users/**`), 20 req/min on AI endpoints (`/api/chat`, `/api/career`), and 120 req/min across general APIs, returning HTTP 429 with RFC-compliant `Retry-After` headers. Proxy headers (`X-Forwarded-For`) are untrusted by default to prevent IP spoofing unless explicitly enabled (`rate-limiter.trust-proxy-headers=true`).
 - ✅ **Model Context Protocol (MCP) JSON-RPC 2.0 Server**: Standard MCP protocol handler at `POST /api/mcp/rpc` (`tools/list` and `tools/call`) with JSON Schema input validation, plus developer REST endpoints (`/api/tools/**`).
-- ✅ **Live GitHub API Integration**: Dedicated `GitHubService` with in-memory TTL caching (15 minutes) and strict error propagation (HTTP 429/503) instead of fake repository mocking.
+- ✅ **Live GitHub API Integration**: Dedicated `GitHubService` with in-memory TTL caching (15 minutes), strict username format validation to prevent path traversal, and explicit error propagation (HTTP 400/404/429/503) instead of fake repository mocking.
+- ✅ **Isolated JVM Sandbox Execution**: Student code execution in the DSA workspace is routed to an external isolated Piston sandbox environment (Java 15.0.2 JVM runtime).
 - ✅ **Spring Boot Actuator**: Dedicated `/actuator/health` and `/actuator/info` endpoints for cloud load balancer liveness probes, with protected management metrics.
 - ✅ **Python GenAI & RAG Subsystem**: Real dense vector retrieval powered by Sentence-Transformers (`all-MiniLM-L6-v2`, 384 dimensions) and FAISS (`IndexFlatIP`) with strict physical tenant isolation (`storage/users/{user_id}/`), internal token security (`X-Internal-Token`), path-traversal input sanitization, sliding-window sentence-boundary chunking, and grounded Gemini answers with exact page citations.
 - ✅ **SSRF-Safe AI & Career Subsystem**: Server-side request validation (`SsrfProtectionValidator`) rigorously rejects loopback (`127.0.0.0/8`, `::1`), link-local (`169.254.0.0/16`), site-local RFC 1918 private IPs (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), and cloud metadata endpoints (`169.254.169.254`) with bounded content parsing before invoking Google Gemini LLM.
@@ -117,9 +118,9 @@ CodeMentor features a dedicated Python GenAI microservice (`python-rag/`) integr
 - ✂️ [**Chunking Strategies**](docs/architecture/CHUNKING.md) — Sliding window, boundary preservation, context fragmentation vs dilution.
 - 🛡️ [**Tenant Security & Data Isolation**](docs/security/SECURITY.md) — Zero cross-tenant leakage threat model & test proofs.
 
-### 🧪 Automated Test Verification (78 Total Tests Passing)
-- **Spring Boot Backend**: 66 passing automated tests (`./mvnw clean verify`) covering security, JWT authentication, unauthenticated rejection of AI endpoints, rate limiting with proxy trust validation, registration conflicts (HTTP 409), validation (HTTP 400), pagination, and RAG proxy routing.
-- **Python RAG Microservice**: 12 passing automated tests (`pytest`) covering sliding-window chunking, L2 normalized embeddings, FAISS CRUD, API lifecycle, internal service token authentication (`X-Internal-Token`), path traversal sanitization, unconfigured token fail-closed behavior, and **strict multi-tenant isolation** (User A's documents are 100% inaccessible to User B).
+### 🧪 Automated Test Verification (79 Total Tests Passing)
+- **Spring Boot Backend**: 67 passing automated tests (`./mvnw clean verify`) covering security, JWT authentication, unauthenticated rejection of AI endpoints, rate limiting with proxy trust validation, registration conflicts (HTTP 409), validation (HTTP 400), pagination, GitHub username sanitization, and RAG proxy routing.
+- **Python RAG Microservice**: 12 passing automated tests (`pytest`) covering sliding-window chunking, L2 normalized embeddings, FAISS CRUD, API lifecycle, internal service token authentication (`X-Internal-Token`), path traversal sanitization, unconfigured token fail-closed behavior, and **strict multi-tenant isolation** (User A's documents are isolated from User B).
 
 ### ⚖️ Architectural Trade-off: FAISS Index Deletions
 FAISS `IndexFlatIP` maintains contiguous flat memory buffers for inner-product vector similarity. Because `IndexFlatIP` does not support in-place random vector deletion without maintaining auxiliary ID-mapping structures (`IndexIDMap2`) that increase memory footprint, deleting a document purges chunk metadata and re-embeds the remaining chunks to reconstruct the user's isolated index. For personal developer knowledge bases (<10,000 chunks), rebuilding in memory executes in under 20ms while preserving zero fragment overhead.
@@ -131,7 +132,7 @@ FAISS `IndexFlatIP` maintains contiguous flat memory buffers for inner-product v
 
 ```mermaid
 flowchart TD
-    subgraph Client["Frontend Client (React 18 + Vite)"]
+    subgraph Client["Frontend Client (React 19 + Vite)"]
         UI["Linear-Inspired UI\nDark Theme (#0B0F19)"]
         Router["React Router v6\nBookmarkable URLs"]
         CmdK["Command Palette\n(Ctrl + K Navigation)"]
@@ -145,7 +146,7 @@ flowchart TD
         SecConfig["SecurityFilterChain\nStateless + CORS + 401/403"]
     end
 
-    subgraph Backend["Spring Boot 3.4 Core"]
+    subgraph Backend["Spring Boot 4.1 Core"]
         Controllers["REST Controllers\nOpenAPI 3.0 Annotated"]
         McpServer["Model Context Protocol (MCP)\nJSON-RPC 2.0 Server"]
         Services["Domain Services Layer\nUser-Isolation Enforced"]
@@ -302,14 +303,14 @@ Response:
 
 ---
 
-## 🧪 Automated Testing Strategy (66 Passing Tests)
+## 🧪 Automated Testing Strategy (67 Passing Tests)
 
-The backend features a comprehensive suite of **66 automated unit, integration, and security tests**:
+The backend features a comprehensive suite of **67 automated unit, integration, and security tests**:
 
 ```bash
 [INFO] Results:
 [INFO] 
-[INFO] Tests run: 66, Failures: 0, Errors: 0, Skipped: 0
+[INFO] Tests run: 67, Failures: 0, Errors: 0, Skipped: 0
 [INFO] BUILD SUCCESS
 ```
 
@@ -326,8 +327,9 @@ The backend features a comprehensive suite of **66 automated unit, integration, 
    - `userIsolationStudyHoursTest`: Verifies User B's study hours remain `0.0` when User A logs sessions.
    - `mcpJsonRpcToolsListTest`: Verifies `POST /api/mcp/rpc` returns compliant JSON-RPC 2.0 tool schemas.
 
-2. **Live GitHub Service & Zero Fake Data** (`GitHubServiceTest` — 1 test):
+2. **Live GitHub Service & Path Traversal Defense** (`GitHubServiceTest` — 2 tests):
    - Verifies live GitHub API querying, TTL caching, and zero fabrication on missing users or rate limits.
+   - Verifies strict rejection of invalid usernames, special characters, and path traversal attempts with HTTP 400.
 
 3. **Rate Limiting & DoS Defense** (`RateLimitingFilterTest` — 5 tests):
    - Sliding-window throughput, burst capacity, and HTTP 429 rejection on auth endpoints.

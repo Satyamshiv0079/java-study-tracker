@@ -33,4 +33,25 @@ class GitHubServiceTest {
             assertTrue(e.getStatusCode().is4xxClientError() || e.getStatusCode().is5xxServerError());
         }
     }
+
+    @Test
+    @DisplayName("GitHubService should reject invalid usernames and path traversal attempts with HTTP 400")
+    void testInvalidUsernameRejected() {
+        String[] badUsernames = {
+            "../../etc/passwd",
+            "user/repo",
+            "-leadinghyphen",
+            "trailinghyphen-",
+            "double--hyphen",
+            "user with spaces",
+            "a".repeat(40)
+        };
+
+        for (String bad : badUsernames) {
+            ResponseStatusException ex = assertThrows(ResponseStatusException.class, () -> {
+                gitHubService.getRepositorySummary(bad);
+            });
+            assertEquals(org.springframework.http.HttpStatus.BAD_REQUEST, ex.getStatusCode());
+        }
+    }
 }

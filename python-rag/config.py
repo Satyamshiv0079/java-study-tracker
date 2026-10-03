@@ -9,6 +9,10 @@ class Settings(BaseSettings):
     PORT: int = 8000
     DEBUG: bool = False
     INTERNAL_SERVICE_TOKEN: str = os.getenv("RAG_INTERNAL_TOKEN", "")
+    ALLOWED_ORIGINS: str = os.getenv(
+        "RAG_ALLOWED_ORIGINS",
+        "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000,http://localhost:8080,https://java-study-tracker.vercel.app,https://java-study-tracker-omega.vercel.app"
+    )
 
     # Gemini LLM Settings
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")

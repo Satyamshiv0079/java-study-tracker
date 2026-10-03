@@ -38,4 +38,4 @@ __pycache__/
 */.pytest_cache/
 python-rag/storage/users/
 *.faiss
-
+PROJECT_CHANGES_REPORT.md

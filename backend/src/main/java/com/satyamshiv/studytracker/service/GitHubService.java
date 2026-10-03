@@ -28,9 +28,15 @@ public class GitHubService {
     // In-memory cache with 15-minute TTL to respect GitHub rate limits
     private final Map<String, CachedGitHubData> cache = new ConcurrentHashMap<>();
     private static final long CACHE_TTL_SECONDS = 900; // 15 minutes
+    private static final java.util.regex.Pattern GITHUB_USERNAME_PATTERN =
+            java.util.regex.Pattern.compile("^[a-zA-Z0-9](?:[a-zA-Z0-9]|-(?=[a-zA-Z0-9])){0,38}$");
 
     public GitHubSummaryResponse getRepositorySummary(String username) {
         String safeUsername = (username == null || username.isBlank()) ? "Satyamshiv0079" : username.trim();
+
+        if (!GITHUB_USERNAME_PATTERN.matcher(safeUsername).matches()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid GitHub username format: " + safeUsername);
+        }
 
         // 1. Check cache first
         CachedGitHubData cached = cache.get(safeUsername.toLowerCase());
