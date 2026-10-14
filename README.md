@@ -1,4 +1,4 @@
-## 🚀 CodeMentor — 45-Day Java & Spring Boot Placement Platform
+# 🚀 CodeMentor — 45-Day Java & Spring Boot Placement Platform
 ### *Full-Stack Developer Learning Tracker with GenAI & Retrieval-Augmented Generation (RAG)*
 
 [![Java 17](https://img.shields.io/badge/Java-17-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
